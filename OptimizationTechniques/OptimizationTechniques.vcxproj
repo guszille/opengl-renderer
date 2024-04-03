@@ -153,12 +153,14 @@
     <ClCompile Include="sources\graphics\shader.cpp" />
     <ClCompile Include="sources\utils\camera.cpp" />
     <ClCompile Include="sources\utils\debug.cpp" />
+    <ClCompile Include="sources\utils\entity.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\graphics\model.h" />
     <ClInclude Include="sources\graphics\shader.h" />
     <ClInclude Include="sources\utils\camera.h" />
     <ClInclude Include="sources\utils\debug.h" />
+    <ClInclude Include="sources\utils\entity.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="sources\shaders\render_model_fs.glsl" />

@@ -16,6 +16,12 @@ public:
 	const glm::mat4& getViewMatrix();
 	const glm::vec3& getPosition();
 	const glm::vec3& getDirection();
+	const glm::vec3& getUp();
+
+	const glm::mat4& getViewMatrix() const;
+	const glm::vec3& getPosition() const;
+	const glm::vec3& getDirection() const;
+	const glm::vec3& getUp() const;
 
 	void processTranslation(Direction moveDirection, float speed);
 	void processRotation(float xOffset, float yOffset);

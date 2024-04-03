@@ -52,6 +52,9 @@ class Model
 public:
 	Model(const char* filepath);
 
+	const std::vector<Vertex>& getVertices();
+	const std::vector<Vertex>& getVertices() const;
+
 	void render(ShaderProgram* shader);
 
 private:
@@ -59,7 +62,6 @@ private:
 
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
-
 	std::vector<Texture> textures;
 
 	void load(const char* filepath);

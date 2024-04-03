@@ -13,6 +13,7 @@
 #include "sources/graphics/shader.h"
 #include "sources/graphics/model.h"
 #include "sources/utils/camera.h"
+#include "sources/utils/entity.h"
 #include "sources/utils/debug.h"
 
 // Global variables.
@@ -42,7 +43,7 @@ glm::mat4 projectionMatrix = glm::perspective(glm::radians(FIELD_OF_VIEW), WINDO
 ShaderProgram* modelRenderShader;
 
 Model* marsModel;
-Model* rockModel;
+Entity* rootEntity;
 
 // GLFW window callbacks.
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
@@ -57,12 +58,33 @@ static void setupApplication()
 	modelRenderShader = new ShaderProgram("sources/shaders/render_model_vs.glsl", "sources/shaders/render_model_fs.glsl");
 
 	marsModel = new Model("resources/models/mars/mars.obj");
-	rockModel = new Model("resources/models/rock/rock.obj");
+	rootEntity = new Entity(marsModel);
+
+	// Generating scene children.
+	{
+		Entity* lastEntity = rootEntity;
+
+		for (int x = 0; x < 20; ++x)
+		{
+			for (int z = 0; z < 20; ++z)
+			{
+				rootEntity->addChild(marsModel);
+
+				lastEntity = rootEntity->children.back().get();
+				lastEntity->transform.setLocalPosition({ x * 10.f - 100.f,  0.f, z * 10.f - 100.f });
+			}
+		}
+	}
+
+	rootEntity->updateSelfAndChildren();
 }
 
 static void render(float currentFrame)
 {
-	glm::mat4 modelMatrix = glm::mat4(1.0f);
+	uint32_t total = 0, display = 0;
+	Frustum camFrustum{};
+
+	camFrustum.generateFromCamera(camera, WINDOW_ASPECT_RATIO, FIELD_OF_VIEW, 0.1f, 100.0f);
 
 	glClearColor(0.25f, 0.5f, 0.75f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -72,13 +94,13 @@ static void render(float currentFrame)
 	modelRenderShader->setUniformMatrix4fv("uProjectionMatrix", projectionMatrix);
 	modelRenderShader->setUniformMatrix4fv("uViewMatrix", camera.getViewMatrix());
 
-	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, -10.0f));
+	rootEntity->renderSelfAndChildren(modelRenderShader, camFrustum, display, total);
 
-	modelRenderShader->setUniformMatrix4fv("uModelMatrix", modelMatrix);
-
-	marsModel->render(modelRenderShader);
+	std::cout << "Total processed in CPU : " << total << " / Total send to GPU : " << display << std::endl;
 
 	modelRenderShader->unbind();
+
+	rootEntity->updateSelfAndChildren();
 }
 
 static void showFramesPerSecond(GLFWwindow* window)

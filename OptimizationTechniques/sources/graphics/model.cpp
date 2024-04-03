@@ -6,11 +6,19 @@ Model::Model(const char* filepath)
 	load(filepath);
 }
 
+const std::vector<Vertex>& Model::getVertices()
+{
+	return vertices;
+}
+
+const std::vector<Vertex>& Model::getVertices() const
+{
+	return vertices;
+}
+
 void Model::render(ShaderProgram* shader)
 {
 	int unit = 0;
-
-	shader->bind();
 
 	for (const Texture& texture : textures)
 	{
@@ -38,8 +46,6 @@ void Model::render(ShaderProgram* shader)
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
-
-	shader->unbind();
 }
 
 void Model::load(const char* filepath)

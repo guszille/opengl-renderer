@@ -21,6 +21,31 @@ const glm::vec3& Camera::getDirection()
 	return direction;
 }
 
+const glm::vec3& Camera::getUp()
+{
+	return up;
+}
+
+const glm::mat4& Camera::getViewMatrix() const
+{
+	return viewMatrix;
+}
+
+const glm::vec3& Camera::getPosition() const
+{
+	return position;
+}
+
+const glm::vec3& Camera::getDirection() const
+{
+	return direction;
+}
+
+const glm::vec3& Camera::getUp() const
+{
+	return up;
+}
+
 void Camera::processTranslation(Direction moveDirection, float speed)
 {
 	switch (moveDirection)
