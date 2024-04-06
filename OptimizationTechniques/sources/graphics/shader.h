@@ -26,6 +26,8 @@ public:
 	void setUniformMatrix3fv(const char* uniformName, const glm::mat3& data);
 	void setUniformMatrix4fv(const char* uniformName, const glm::mat4& data);
 
+	void clean();
+
 private:
 	uint32_t ID;
 

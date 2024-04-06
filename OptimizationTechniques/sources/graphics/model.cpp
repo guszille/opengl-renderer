@@ -48,6 +48,13 @@ void Model::render(ShaderProgram* shader)
 	glBindVertexArray(0);
 }
 
+void Model::clean()
+{
+	glDeleteBuffers(1, &IBO);
+	glDeleteBuffers(1, &VBO);
+	glDeleteVertexArrays(1, &VAO);
+}
+
 void Model::load(const char* filepath)
 {
 	tinyobj::attrib_t attrib;

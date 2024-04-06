@@ -149,18 +149,24 @@
   <ItemGroup>
     <ClCompile Include="external\sources\glad\glad.c" />
     <ClCompile Include="program.cpp" />
+    <ClCompile Include="sources\application.cpp" />
     <ClCompile Include="sources\graphics\model.cpp" />
     <ClCompile Include="sources\graphics\shader.cpp" />
-    <ClCompile Include="sources\utils\camera.cpp" />
+    <ClCompile Include="sources\camera.cpp" />
     <ClCompile Include="sources\utils\debug.cpp" />
-    <ClCompile Include="sources\utils\entity.cpp" />
+    <ClCompile Include="sources\entity.cpp" />
+    <ClCompile Include="sources\scene.cpp" />
+    <ClCompile Include="sources\scenes\frustum_culling_scene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="sources\application.h" />
     <ClInclude Include="sources\graphics\model.h" />
     <ClInclude Include="sources\graphics\shader.h" />
-    <ClInclude Include="sources\utils\camera.h" />
+    <ClInclude Include="sources\camera.h" />
     <ClInclude Include="sources\utils\debug.h" />
-    <ClInclude Include="sources\utils\entity.h" />
+    <ClInclude Include="sources\entity.h" />
+    <ClInclude Include="sources\scene.h" />
+    <ClInclude Include="sources\scenes\frustum_culling_scene.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="sources\shaders\render_model_fs.glsl" />

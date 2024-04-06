@@ -56,6 +56,7 @@ public:
 	const std::vector<Vertex>& getVertices() const;
 
 	void render(ShaderProgram* shader);
+	void clean();
 
 private:
 	uint32_t VAO, VBO, IBO;

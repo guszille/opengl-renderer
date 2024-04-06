@@ -153,6 +153,11 @@ void ShaderProgram::setUniformMatrix4fv(const char* uniformName, const glm::mat4
 	}
 }
 
+void ShaderProgram::clean()
+{
+	glDeleteProgram(ID);
+}
+
 uint32_t ShaderProgram::createShader(const char* filepath, int shaderType)
 {
 	int success;

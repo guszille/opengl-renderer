@@ -1,10 +1,12 @@
 #pragma once
 
+#include <list>
+#include <memory>
+
 #include <glm/glm.hpp>
 
-#include "../graphics/model.h"
-#include "../graphics/shader.h"
-
+#include "graphics/shader.h"
+#include "graphics/model.h"
 #include "camera.h"
 
 class Transform
@@ -21,7 +23,18 @@ protected:
     // Dirty flag.
     bool dirty = true;
 
-    glm::mat4 getLocalModelMatrix();
+    glm::mat4 getLocalModelMatrix()
+    {
+        const glm::mat4 transformX = glm::rotate(glm::mat4(1.0f), glm::radians(eulerRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+        const glm::mat4 transformY = glm::rotate(glm::mat4(1.0f), glm::radians(eulerRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+        const glm::mat4 transformZ = glm::rotate(glm::mat4(1.0f), glm::radians(eulerRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+
+        // Y * X * Z
+        const glm::mat4 roationMatrix = transformY * transformX * transformZ;
+
+        // translation * rotation * scale (also know as TRS matrix)
+        return glm::translate(glm::mat4(1.0f), position) * roationMatrix * glm::scale(glm::mat4(1.0f), scale);
+    }
 
 public:
     void computeModelMatrix()
@@ -114,8 +127,8 @@ struct Plane
 
     Plane() = default;
 
-    Plane(const glm::vec3& p, const glm::vec3& norm)
-        : normal(glm::normalize(norm)), distance(glm::dot(normal, p))
+    Plane(const glm::vec3& p, const glm::vec3& n)
+        : normal(glm::normalize(n)), distance(glm::dot(normal, p))
     {}
 
     float getSignedDistanceTo(const glm::vec3& point) const
@@ -126,19 +139,12 @@ struct Plane
 
 struct Frustum
 {
-    Plane nearFace;
-    Plane farFace;
+    Plane nearFace, farFace, rightFace, leftFace, topFace, bottomFace;
 
-    Plane rightFace;
-    Plane leftFace;
-
-    Plane topFace;
-    Plane bottomFace;
-
-    void generateFromCamera(const Camera& camera, float aspect, float fov, float zNear, float zFar)
+    void generateFacesFromCamera(const Camera& camera, float aspectRatio, float fov, float zNear, float zFar)
     {
         float halfVSide = zFar * tanf(fov * 0.5f);
-        float halfHSide = halfVSide * aspect;
+        float halfHSide = halfVSide * aspectRatio;
 
         glm::vec3 camPos = camera.getPosition();
         glm::vec3 camFront = camera.getDirection();
@@ -184,17 +190,17 @@ struct Sphere : public BoundingVolume
 
     float radius = 0.0f;
 
-    Sphere(const glm::vec3& c, float r)
-        : BoundingVolume{}, center(c), radius(r)
+    Sphere(const glm::vec3& center, float radius)
+        : BoundingVolume{}, center(center), radius(radius)
     {}
 
-    Sphere(const Model& model)
+    Sphere(Model* model)
         : BoundingVolume{}
     {
         glm::vec3 minAABB = glm::vec3(std::numeric_limits<float>::max());
         glm::vec3 maxAABB = glm::vec3(std::numeric_limits<float>::min());
 
-        for (const Vertex& vertex : model.getVertices())
+        for (const Vertex& vertex : model->getVertices())
         {
             minAABB.x = std::min(minAABB.x, vertex.position.x);
             minAABB.y = std::min(minAABB.y, vertex.position.y);
@@ -248,17 +254,12 @@ public:
     Transform transform;
 
     std::list<std::unique_ptr<Entity>> children;
-
     Entity* parent = nullptr;
-    Model* model = nullptr;
 
     std::unique_ptr<Sphere> boundingVolume;
+    Model* model = nullptr;
 
-    Entity(Model* modelPtr)
-        : model(modelPtr)
-    {
-        boundingVolume = std::make_unique<Sphere>(*model);
-    }
+    Entity(Model* model);
 
     template<typename... T>
     void addChild(const T&... args)

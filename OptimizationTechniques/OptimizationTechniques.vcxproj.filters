@@ -27,13 +27,22 @@
     <ClCompile Include="sources\graphics\model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sources\utils\camera.cpp">
+    <ClCompile Include="sources\camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sources\graphics\shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sources\utils\entity.cpp">
+    <ClCompile Include="sources\entity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\scenes\frustum_culling_scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\application.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -44,13 +53,22 @@
     <ClInclude Include="sources\graphics\model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sources\utils\camera.h">
+    <ClInclude Include="sources\camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sources\graphics\shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sources\utils\entity.h">
+    <ClInclude Include="sources\entity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\scenes\frustum_culling_scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\application.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
