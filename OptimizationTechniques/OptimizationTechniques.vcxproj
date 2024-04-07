@@ -153,6 +153,7 @@
     <ClCompile Include="sources\graphics\model.cpp" />
     <ClCompile Include="sources\graphics\shader.cpp" />
     <ClCompile Include="sources\camera.cpp" />
+    <ClCompile Include="sources\scenes\instancing_scene.cpp" />
     <ClCompile Include="sources\utils\debug.cpp" />
     <ClCompile Include="sources\entity.cpp" />
     <ClCompile Include="sources\scene.cpp" />
@@ -163,6 +164,7 @@
     <ClInclude Include="sources\graphics\model.h" />
     <ClInclude Include="sources\graphics\shader.h" />
     <ClInclude Include="sources\camera.h" />
+    <ClInclude Include="sources\scenes\instancing_scene.h" />
     <ClInclude Include="sources\utils\debug.h" />
     <ClInclude Include="sources\entity.h" />
     <ClInclude Include="sources\scene.h" />
@@ -171,6 +173,8 @@
   <ItemGroup>
     <None Include="sources\shaders\render_model_fs.glsl" />
     <None Include="sources\shaders\render_model_vs.glsl" />
+    <None Include="sources\shaders\render_model_with_instancing_fs.glsl" />
+    <None Include="sources\shaders\render_model_with_instancing_vs.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

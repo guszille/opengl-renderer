@@ -45,6 +45,9 @@
     <ClCompile Include="sources\application.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sources\scenes\instancing_scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\utils\debug.h">
@@ -71,9 +74,14 @@
     <ClInclude Include="sources\application.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="sources\scenes\instancing_scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="sources\shaders\render_model_vs.glsl" />
     <None Include="sources\shaders\render_model_fs.glsl" />
+    <None Include="sources\shaders\render_model_with_instancing_vs.glsl" />
+    <None Include="sources\shaders\render_model_with_instancing_fs.glsl" />
   </ItemGroup>
 </Project>

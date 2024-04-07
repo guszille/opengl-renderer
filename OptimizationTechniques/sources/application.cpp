@@ -10,7 +10,7 @@ Application::Application(int screenWidth, int screenHeight)
 
 void Application::setup()
 {
-	currentScene = new FrustumCullingScene();
+	currentScene = new InstancingScene();
 
 	currentScene->setup();
 }

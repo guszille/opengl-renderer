@@ -9,6 +9,7 @@
 #include "scene.h"
 
 #include "scenes/frustum_culling_scene.h"
+#include "scenes/instancing_scene.h"
 
 class Application
 {

@@ -53,16 +53,18 @@ public:
 	Model(const char* filepath);
 
 	const std::vector<Vertex>& getVertices();
-	const std::vector<Vertex>& getVertices() const;
 
-	void render(ShaderProgram* shader);
+	void render(ShaderProgram* shader, int instances = 1);
 	void clean();
 
+	void attachInstanceMatricesVBO(const void* vertices, int size);
+
 private:
-	uint32_t VAO, VBO, IBO;
+	uint32_t VAO, VBO, IBO, instanceMatricesVBO;
 
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
+
 	std::vector<Texture> textures;
 
 	void load(const char* filepath);

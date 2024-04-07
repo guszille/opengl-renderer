@@ -1,7 +1,7 @@
 #include "model.h"
 
 Model::Model(const char* filepath)
-	: VAO(0), VBO(0), IBO(0)
+	: VAO(0), VBO(0), IBO(0), instanceMatricesVBO(0)
 {
 	load(filepath);
 }
@@ -11,12 +11,7 @@ const std::vector<Vertex>& Model::getVertices()
 	return vertices;
 }
 
-const std::vector<Vertex>& Model::getVertices() const
-{
-	return vertices;
-}
-
-void Model::render(ShaderProgram* shader)
+void Model::render(ShaderProgram* shader, int instances)
 {
 	int unit = 0;
 
@@ -44,7 +39,16 @@ void Model::render(ShaderProgram* shader)
 	}
 
 	glBindVertexArray(VAO);
-	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+
+	if (instances == 1)
+	{
+		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+	}
+	else
+	{
+		glDrawElementsInstanced(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0, instances);
+	}
+
 	glBindVertexArray(0);
 }
 
@@ -53,6 +57,35 @@ void Model::clean()
 	glDeleteBuffers(1, &IBO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteVertexArrays(1, &VAO);
+}
+
+void Model::attachInstanceMatricesVBO(const void* vertices, int size)
+{
+	std::size_t vec4_s = sizeof(glm::vec4);
+
+	glBindVertexArray(VAO);
+
+	glGenBuffers(1, &instanceMatricesVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, instanceMatricesVBO);
+	glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * vec4_s, (void*)(0));
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4_s, (void*)(1 * vec4_s));
+	glEnableVertexAttribArray(5);
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4_s, (void*)(2 * vec4_s));
+	glEnableVertexAttribArray(6);
+	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4 * vec4_s, (void*)(3 * vec4_s));
+
+	glVertexAttribDivisor(3, 1);
+	glVertexAttribDivisor(4, 1);
+	glVertexAttribDivisor(5, 1);
+	glVertexAttribDivisor(6, 1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
 }
 
 void Model::load(const char* filepath)
