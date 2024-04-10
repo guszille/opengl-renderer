@@ -14,6 +14,10 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_opengl3.h>
+
 #include "sources/application.h"
 #include "sources/utils/debug.h"
 
@@ -29,6 +33,8 @@ float CURR_TIME = 0.0f;
 float LAST_TIME = 0.0f;
 
 unsigned int FRAMES_COUNTER = 0;
+
+int CURSOR_MODE = GLFW_CURSOR_DISABLED;
 
 Application app(SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -69,6 +75,7 @@ int main()
 		return -1;
 	}
 
+	// Setup OpenGL/GLFW context.
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -86,15 +93,15 @@ int main()
 
 	glfwMakeContextCurrent(window);
 
+	glfwSwapInterval(0);
+
+	glfwSetInputMode(window, GLFW_CURSOR, CURSOR_MODE);
+
 	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 	glfwSetKeyCallback(window, keyboardCallback);
 	glfwSetMouseButtonCallback(window, mouseButtonCallback);
 	glfwSetCursorPosCallback(window, cursorPositionCallback);
 	glfwSetScrollCallback(window, scrollCallback);
-
-	glfwSwapInterval(0);
-
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -106,6 +113,7 @@ int main()
 
 	glEnable(GL_DEPTH_TEST);
 
+	// Setup DEBUG context.
 	int contextFlags;
 	glGetIntegerv(GL_CONTEXT_FLAGS, &contextFlags);
 
@@ -120,6 +128,20 @@ int main()
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 	}
 
+	// Setup ImGui context.
+	IMGUI_CHECKVERSION();
+
+	ImGui::CreateContext();
+
+	ImGuiIO& io = ImGui::GetIO();
+
+	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+
+	// Setup platform/renderer backends.
+	ImGui_ImplGlfw_InitForOpenGL(window, true); // Second param will install GLFW callbacks and chain to existing ones.
+	ImGui_ImplOpenGL3_Init();
+
 	app.setup();
 
 	while (!glfwWindowShouldClose(window))
@@ -131,15 +153,23 @@ int main()
 
 		showFramesPerSecond(window);
 
+		glfwPollEvents();
+
 		app.update(DELTA_TIME);
 		app.processInput(DELTA_TIME);
 		app.render(DELTA_TIME);
 
+		app.processGUI();
+
 		glfwSwapBuffers(window);
-		glfwPollEvents();
 	}
 
 	app.clean();
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+
+	ImGui::DestroyContext();
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
@@ -159,9 +189,16 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height)
 
 void keyboardCallback(GLFWwindow* window, int key, int scanCode, int action, int mods)
 {
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) // Window should close.
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);
+	}
+
+	if (key == GLFW_KEY_LEFT_CONTROL && action == GLFW_PRESS)
+	{
+		CURSOR_MODE = CURSOR_MODE == GLFW_CURSOR_DISABLED ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED;
+
+		glfwSetInputMode(window, GLFW_CURSOR, CURSOR_MODE);
 	}
 
 	if (key >= 0 && key < 1024)

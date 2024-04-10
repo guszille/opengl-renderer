@@ -2,42 +2,74 @@
 
 Application::Application(int screenWidth, int screenHeight)
 	: screenWidth(screenWidth), screenHeight(screenHeight),
-	  keyboardState(), keyboardProcessedState(), mouseState(), mouseProcessedState(), cursorAttached(false), lastMousePosition(), currMousePosition(),
-	  camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), float(screenWidth) / float(screenHeight), 45.0f),
-	  currentScene(nullptr)
+	  keyboardState(), keyboardProcessedState(), mouseState(), mouseProcessedState(), cursorAttached(false), cursorTracked(true), lastMousePosition(), currMousePosition(),
+	  camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), { float(screenWidth) / float(screenHeight) }),
+	  lastSceneType(SceneTypes::INSTANCING), currSceneType(SceneTypes::INSTANCING), currScene(nullptr)
 {
 }
 
 void Application::setup()
 {
-	currentScene = new InstancingScene();
+	switch (currSceneType)
+	{
+	case SceneTypes::INSTANCING:
+		currScene = new InstancingScene();
+		break;
 
-	currentScene->setup();
+	case SceneTypes::FRUSTUM_CULLING:
+		currScene = new FrustumCullingScene();
+		break;
+
+	default:
+		std::cout << "Scene not found!" << std::endl;
+		break;
+	}
+
+	if (currScene != nullptr)
+	{
+		currScene->setup();
+	}
 }
 
 void Application::clean()
 {
-	if (currentScene != nullptr)
+	if (currScene != nullptr)
 	{
-		currentScene->clean();
+		currScene->clean();
 
-		delete currentScene;
+		delete currScene;
 	}
 }
 
 void Application::update(float deltaTime)
 {
-	if (currentScene != nullptr)
+	if (currScene != nullptr)
 	{
-		currentScene->update(deltaTime);
-	}
-}
+		if (lastSceneType != currSceneType)
+		{
+			currScene->clean();
 
-void Application::render(float deltaTime)
-{
-	if (currentScene != nullptr)
-	{
-		currentScene->render(camera, deltaTime);
+			switch (currSceneType)
+			{
+			case SceneTypes::INSTANCING:
+				currScene = new InstancingScene();
+				break;
+
+			case SceneTypes::FRUSTUM_CULLING:
+				currScene = new FrustumCullingScene();
+				break;
+
+			default:
+				std::cout << "Scene not found!" << std::endl;
+				break;
+			}
+
+			currScene->setup();
+
+			lastSceneType = currSceneType;
+		}
+
+		currScene->update(deltaTime);
 	}
 }
 
@@ -55,14 +87,62 @@ void Application::processInput(float deltaTime)
 			currMousePosition = lastMousePosition;
 			cursorAttached = true;
 		}
+		else
+		{
+			float xRotationOffset = lastMousePosition.x - currMousePosition.x;
+			float yRotationOffset = currMousePosition.y - lastMousePosition.y;
 
-		float xRotationOffset = lastMousePosition.x - currMousePosition.x;
-		float yRotationOffset = currMousePosition.y - lastMousePosition.y;
+			currMousePosition = lastMousePosition;
 
-		currMousePosition = lastMousePosition;
-
-		camera.processRotation(xRotationOffset, yRotationOffset, deltaTime);
+			camera.processRotation(xRotationOffset, yRotationOffset, deltaTime);
+		}
 	}
+
+	if (keyboardState[GLFW_KEY_LEFT_CONTROL] && !keyboardProcessedState[GLFW_KEY_LEFT_CONTROL])
+	{
+		cursorAttached = false;
+		cursorTracked = !cursorTracked;
+
+		keyboardProcessedState[GLFW_KEY_LEFT_CONTROL] = true;
+	}
+}
+
+void Application::render(float deltaTime)
+{
+	if (currScene != nullptr)
+	{
+		currScene->render(camera, deltaTime);
+	}
+}
+
+void Application::processGUI()
+{
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+
+	ImGui::NewFrame();
+	// ImGui::ShowDemoWindow(); // Show demo window! :)
+
+	bool dialogOpen = true;
+	ImGui::Begin("Debug Dialog", &dialogOpen, ImGuiWindowFlags_MenuBar);
+
+	if (ImGui::BeginMenuBar())
+	{
+		if (ImGui::BeginMenu("Scenes"))
+		{
+			if (ImGui::MenuItem("Instancing")) { currSceneType = SceneTypes::INSTANCING; }
+			if (ImGui::MenuItem("Frustum Culling")) { currSceneType = SceneTypes::FRUSTUM_CULLING; }
+
+			ImGui::EndMenu();
+		}
+
+		ImGui::EndMenuBar();
+	}
+
+	ImGui::End();
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 void Application::setScreenDimensions(int width, int height)
@@ -91,5 +171,8 @@ void Application::setMouseState(int index, bool buttonPressed)
 
 void Application::setMousePosition(float x, float y)
 {
-	lastMousePosition = glm::vec2(x, y);
+	if (cursorTracked)
+	{
+		lastMousePosition = glm::vec2(x, y);
+	}
 }

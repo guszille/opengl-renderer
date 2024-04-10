@@ -5,6 +5,10 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_opengl3.h>
+
 #include "camera.h"
 #include "scene.h"
 
@@ -20,8 +24,10 @@ public:
 	void clean();
 
 	void update(float deltaTime);
-	void render(float deltaTime);
 	void processInput(float deltaTime);
+	void render(float deltaTime);
+
+	void processGUI();
 
 	void setScreenDimensions(int width, int height);
 
@@ -37,11 +43,12 @@ private:
 	bool keyboardProcessedState[1024];
 	bool mouseState[2];
 	bool mouseProcessedState[2];
-	bool cursorAttached;
+	bool cursorAttached, cursorTracked;
 
 	glm::vec2 lastMousePosition, currMousePosition;
 
 	Camera camera;
 
-	Scene* currentScene;
+	SceneTypes lastSceneType, currSceneType;
+	Scene* currScene;
 };

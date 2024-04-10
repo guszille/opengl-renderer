@@ -147,7 +147,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="external\sources\glad\glad.c" />
+    <ClCompile Include="external\includes\glad\glad.c" />
+    <ClCompile Include="external\includes\imgui\imgui.cpp" />
+    <ClCompile Include="external\includes\imgui\imgui_demo.cpp" />
+    <ClCompile Include="external\includes\imgui\imgui_draw.cpp" />
+    <ClCompile Include="external\includes\imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="external\includes\imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="external\includes\imgui\imgui_tables.cpp" />
+    <ClCompile Include="external\includes\imgui\imgui_widgets.cpp" />
     <ClCompile Include="program.cpp" />
     <ClCompile Include="sources\application.cpp" />
     <ClCompile Include="sources\graphics\model.cpp" />

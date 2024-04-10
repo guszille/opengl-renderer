@@ -5,6 +5,12 @@
 #include "camera.h"
 #include "entity.h"
 
+enum class SceneTypes
+{
+	INSTANCING,
+	FRUSTUM_CULLING
+};
+
 class Scene
 {
 public:
