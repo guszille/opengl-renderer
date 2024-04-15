@@ -8,7 +8,8 @@
 enum class SceneTypes
 {
 	INSTANCING,
-	FRUSTUM_CULLING
+	FRUSTUM_CULLING,
+	GRASS
 };
 
 class Scene

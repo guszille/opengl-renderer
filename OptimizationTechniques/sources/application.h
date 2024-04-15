@@ -12,8 +12,9 @@
 #include "camera.h"
 #include "scene.h"
 
-#include "scenes/frustum_culling_scene.h"
 #include "scenes/instancing_scene.h"
+#include "scenes/frustum_culling_scene.h"
+#include "scenes/grass_scene.h"
 
 class Application
 {

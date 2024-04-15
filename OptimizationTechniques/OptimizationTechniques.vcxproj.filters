@@ -69,6 +69,15 @@
     <ClCompile Include="external\includes\imgui\imgui_demo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sources\graphics\buffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\scenes\grass_scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\graphics\texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\utils\debug.h">
@@ -98,11 +107,22 @@
     <ClInclude Include="sources\scenes\instancing_scene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="sources\graphics\buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\scenes\grass_scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\graphics\texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="sources\shaders\render_model_vs.glsl" />
     <None Include="sources\shaders\render_model_fs.glsl" />
     <None Include="sources\shaders\render_model_with_instancing_vs.glsl" />
     <None Include="sources\shaders\render_model_with_instancing_fs.glsl" />
+    <None Include="sources\shaders\render_grass_vs.glsl" />
+    <None Include="sources\shaders\render_grass_fs.glsl" />
   </ItemGroup>
 </Project>

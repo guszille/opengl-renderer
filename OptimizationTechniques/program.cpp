@@ -28,9 +28,8 @@ int SCREEN_HEIGHT = 900;
 std::string WINDOW_TITLE = "Zille's OpengGL Renderer";
 
 float DELTA_TIME = 0.0f;
-float LAST_FRAME_TIME = 0.0f;
-float CURR_TIME = 0.0f;
-float LAST_TIME = 0.0f;
+float LAST_FRAME = 0.0f;
+float LAST_30TH_FRAME = 0.0f;
 
 unsigned int FRAMES_COUNTER = 0;
 
@@ -47,10 +46,10 @@ void scrollCallback(GLFWwindow* window, double xOffset, double yOffset);
 
 static void showFramesPerSecond(GLFWwindow* window)
 {
-	CURR_TIME = float(glfwGetTime());
-	FRAMES_COUNTER += 1;
+	float currTime = float(glfwGetTime());
+	float delta = currTime - LAST_30TH_FRAME;
 
-	float delta = CURR_TIME - LAST_TIME;
+	FRAMES_COUNTER += 1;
 
 	if (delta >= 1.0f / 30.0f)
 	{
@@ -61,8 +60,8 @@ static void showFramesPerSecond(GLFWwindow* window)
 
 		glfwSetWindowTitle(window, newTitle.c_str());
 
-		LAST_TIME = CURR_TIME;
 		FRAMES_COUNTER = 0;
+		LAST_30TH_FRAME = currTime;
 	}
 }
 
@@ -112,6 +111,9 @@ int main()
 	}
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// Setup DEBUG context.
 	int contextFlags;
@@ -146,10 +148,10 @@ int main()
 
 	while (!glfwWindowShouldClose(window))
 	{
-		float currentFrame = float(glfwGetTime());
+		float currTime = float(glfwGetTime());
 
-		DELTA_TIME = currentFrame - LAST_FRAME_TIME;
-		LAST_FRAME_TIME = currentFrame;
+		DELTA_TIME = currTime - LAST_FRAME;
+		LAST_FRAME = currTime;
 
 		showFramesPerSecond(window);
 

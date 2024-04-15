@@ -6,7 +6,7 @@ Model::Model(const char* filepath)
 	load(filepath);
 }
 
-const std::vector<Vertex>& Model::getVertices()
+const std::vector<MVertex>& Model::getVertices()
 {
 	return vertices;
 }
@@ -15,9 +15,9 @@ void Model::render(ShaderProgram* shader, int instances)
 {
 	int unit = 0;
 
-	for (const Texture& texture : textures)
+	for (const MTexture& texture : textures)
 	{
-		if (texture.type == Texture::Type::DIFFUSE)
+		if (texture.type == MTexture::Type::DIFFUSE)
 		{
 			shader->setUniform1i("uMaterial.diffuseMap", unit);
 		}
@@ -57,6 +57,13 @@ void Model::clean()
 	glDeleteBuffers(1, &IBO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteVertexArrays(1, &VAO);
+
+	for (const MTexture& texture : textures)
+	{
+		glDeleteTextures(1, &texture.ID);
+	}
+
+	textures.clear();
 }
 
 void Model::attachInstanceMatricesVBO(const void* vertices, int size)
@@ -113,13 +120,13 @@ void Model::load(const char* filepath)
 		return;
 	}
 
-	std::unordered_map<Vertex, uint32_t> uniqueVertices;
+	std::unordered_map<MVertex, uint32_t> uniqueVertices;
 
 	for (const auto& shape : shapes)
 	{
 		for (const auto& index : shape.mesh.indices)
 		{
-			Vertex vertex{};
+			MVertex vertex{};
 
 			vertex.position[0] = attrib.vertices[3 * size_t(index.vertex_index) + 0];
 			vertex.position[1] = attrib.vertices[3 * size_t(index.vertex_index) + 1];
@@ -134,8 +141,8 @@ void Model::load(const char* filepath)
 
 			if (index.texcoord_index >= 0)
 			{
-				vertex.texcoords[0] = attrib.texcoords[2 * size_t(index.texcoord_index) + 0];
-				vertex.texcoords[1] = attrib.texcoords[2 * size_t(index.texcoord_index) + 1];
+				vertex.uvs[0] = attrib.texcoords[2 * size_t(index.texcoord_index) + 0];
+				vertex.uvs[1] = attrib.texcoords[2 * size_t(index.texcoord_index) + 1];
 			}
 
 			if (uniqueVertices.count(vertex) == 0)
@@ -153,7 +160,7 @@ void Model::load(const char* filepath)
 	{
 		if (!material.diffuse_texname.empty())
 		{
-			loadTexture((basedir + "/" + material.diffuse_texname).c_str(), Texture::Type::DIFFUSE);
+			loadTexture((basedir + "/" + material.diffuse_texname).c_str(), MTexture::Type::DIFFUSE);
 		}
 
 		// TODO: Check if there is a "specular" texture too.
@@ -167,12 +174,12 @@ void Model::load(const char* filepath)
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(MVertex), &vertices[0], GL_STATIC_DRAW);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(0));
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, normal)));
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, texcoords)));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(MVertex), (void*)(0));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(MVertex), (void*)(offsetof(MVertex, normal)));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(MVertex), (void*)(offsetof(MVertex, uvs)));
 
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
@@ -183,7 +190,7 @@ void Model::load(const char* filepath)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void Model::loadTexture(const char* filepath, Texture::Type type)
+void Model::loadTexture(const char* filepath, MTexture::Type type)
 {
 	stbi_set_flip_vertically_on_load(true);
 

@@ -200,7 +200,7 @@ struct Sphere : public BoundingVolume
         glm::vec3 minAABB = glm::vec3(std::numeric_limits<float>::max());
         glm::vec3 maxAABB = glm::vec3(std::numeric_limits<float>::min());
 
-        for (const Vertex& vertex : model->getVertices())
+        for (const MVertex& vertex : model->getVertices())
         {
             minAABB.x = std::min(minAABB.x, vertex.position.x);
             minAABB.y = std::min(minAABB.y, vertex.position.y);

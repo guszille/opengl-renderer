@@ -3,8 +3,8 @@
 Application::Application(int screenWidth, int screenHeight)
 	: screenWidth(screenWidth), screenHeight(screenHeight),
 	  keyboardState(), keyboardProcessedState(), mouseState(), mouseProcessedState(), cursorAttached(false), cursorTracked(true), lastMousePosition(), currMousePosition(),
-	  camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), { float(screenWidth) / float(screenHeight) }),
-	  lastSceneType(SceneTypes::INSTANCING), currSceneType(SceneTypes::INSTANCING), currScene(nullptr)
+	  camera(glm::vec3(0.0f, 5.0f, 5.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), { float(screenWidth) / float(screenHeight) }),
+	  lastSceneType(SceneTypes::GRASS), currSceneType(SceneTypes::GRASS), currScene(nullptr)
 {
 }
 
@@ -18,6 +18,10 @@ void Application::setup()
 
 	case SceneTypes::FRUSTUM_CULLING:
 		currScene = new FrustumCullingScene();
+		break;
+
+	case SceneTypes::GRASS:
+		currScene = new GrassScene();
 		break;
 
 	default:
@@ -57,6 +61,10 @@ void Application::update(float deltaTime)
 
 			case SceneTypes::FRUSTUM_CULLING:
 				currScene = new FrustumCullingScene();
+				break;
+
+			case SceneTypes::GRASS:
+				currScene = new GrassScene();
 				break;
 
 			default:
@@ -130,8 +138,20 @@ void Application::processGUI()
 	{
 		if (ImGui::BeginMenu("Scenes"))
 		{
-			if (ImGui::MenuItem("Instancing")) { currSceneType = SceneTypes::INSTANCING; }
-			if (ImGui::MenuItem("Frustum Culling")) { currSceneType = SceneTypes::FRUSTUM_CULLING; }
+			if (ImGui::MenuItem("Instancing", "1", currSceneType == SceneTypes::INSTANCING))
+			{
+				currSceneType = SceneTypes::INSTANCING;
+			}
+			
+			if (ImGui::MenuItem("Frustum Culling", "2", currSceneType == SceneTypes::FRUSTUM_CULLING))
+			{
+				currSceneType = SceneTypes::FRUSTUM_CULLING;
+			}
+
+			if (ImGui::MenuItem("Grass", "3", currSceneType == SceneTypes::GRASS))
+			{
+				currSceneType = SceneTypes::GRASS;
+			}
 
 			ImGui::EndMenu();
 		}
