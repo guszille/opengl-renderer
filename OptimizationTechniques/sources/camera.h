@@ -18,7 +18,7 @@ class Camera
 public:
 	Camera(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& up, ProjectionProperties projProps, float pitch = 0.0f, float yaw = -90.0f, float speed = 7.5f, float sensitivity = 50.0f);
 
-	enum class TDirection { FORWARD, BACK, RIGHT, LEFT };
+	enum class TDirection { FORWARD, BACK, RIGHT, LEFT, UP, DOWN };
 
 	const glm::mat4& getViewMatrix();
 	const glm::mat4& getProjectionMatrix();

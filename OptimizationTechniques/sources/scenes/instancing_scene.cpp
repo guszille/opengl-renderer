@@ -61,3 +61,7 @@ void InstancingScene::render(const Camera& camera, float deltaTime)
 
 	instancingModelRenderShader->unbind();
 }
+
+void InstancingScene::processGUI()
+{
+}

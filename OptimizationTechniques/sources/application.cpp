@@ -87,6 +87,8 @@ void Application::processInput(float deltaTime)
 	if (keyboardState[GLFW_KEY_S]) { camera.processTranslation(Camera::TDirection::BACK, deltaTime); }
 	if (keyboardState[GLFW_KEY_D]) { camera.processTranslation(Camera::TDirection::RIGHT, deltaTime); }
 	if (keyboardState[GLFW_KEY_A]) { camera.processTranslation(Camera::TDirection::LEFT, deltaTime); }
+	if (keyboardState[GLFW_KEY_Q]) { camera.processTranslation(Camera::TDirection::UP, deltaTime); }
+	if (keyboardState[GLFW_KEY_E]) { camera.processTranslation(Camera::TDirection::DOWN, deltaTime); }
 
 	if (lastMousePosition != currMousePosition)
 	{
@@ -123,7 +125,7 @@ void Application::render(float deltaTime)
 	}
 }
 
-void Application::processGUI()
+void Application::processGUI(const ImGuiIO& io)
 {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
@@ -133,6 +135,8 @@ void Application::processGUI()
 
 	bool dialogOpen = true;
 	ImGui::Begin("Debug Dialog", &dialogOpen, ImGuiWindowFlags_MenuBar);
+
+	ImGui::Text("%.2f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 
 	if (ImGui::BeginMenuBar())
 	{
@@ -160,6 +164,11 @@ void Application::processGUI()
 	}
 
 	ImGui::End();
+
+	if (currScene != nullptr)
+	{
+		currScene->processGUI();
+	}
 
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

@@ -17,6 +17,8 @@ public:
 	void update(float deltaTime);
 	void render(const Camera& camera, float deltaTime);
 
+	void processGUI();
+
 private:
 	ShaderProgram* instancingModelRenderShader;
 	Model* marsModel;

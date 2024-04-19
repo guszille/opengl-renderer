@@ -158,6 +158,7 @@
     <ClCompile Include="program.cpp" />
     <ClCompile Include="sources\application.cpp" />
     <ClCompile Include="sources\graphics\buffer.cpp" />
+    <ClCompile Include="sources\graphics\depthmap.cpp" />
     <ClCompile Include="sources\graphics\model.cpp" />
     <ClCompile Include="sources\graphics\shader.cpp" />
     <ClCompile Include="sources\camera.cpp" />
@@ -168,10 +169,12 @@
     <ClCompile Include="sources\entity.cpp" />
     <ClCompile Include="sources\scene.cpp" />
     <ClCompile Include="sources\scenes\frustum_culling_scene.cpp" />
+    <ClCompile Include="sources\utils\dev\depthmap_renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\application.h" />
     <ClInclude Include="sources\graphics\buffer.h" />
+    <ClInclude Include="sources\graphics\depthmap.h" />
     <ClInclude Include="sources\graphics\model.h" />
     <ClInclude Include="sources\graphics\shader.h" />
     <ClInclude Include="sources\camera.h" />
@@ -182,10 +185,17 @@
     <ClInclude Include="sources\entity.h" />
     <ClInclude Include="sources\scene.h" />
     <ClInclude Include="sources\scenes\frustum_culling_scene.h" />
+    <ClInclude Include="sources\utils\dev\depthmap_renderer.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="sources\shaders\render_grass_fs.glsl" />
-    <None Include="sources\shaders\render_grass_vs.glsl" />
+    <None Include="sources\shaders\dev\render_depth_map_fs.glsl" />
+    <None Include="sources\shaders\dev\render_depth_map_vs.glsl" />
+    <None Include="sources\shaders\render_monochromatic_grass_fs.glsl" />
+    <None Include="sources\shaders\render_monochromatic_grass_shadow_map_fs.glsl" />
+    <None Include="sources\shaders\render_monochromatic_grass_shadow_map_vs.glsl" />
+    <None Include="sources\shaders\render_monochromatic_grass_vs.glsl" />
+    <None Include="sources\shaders\render_texturized_grass_fs.glsl" />
+    <None Include="sources\shaders\render_texturized_grass_vs.glsl" />
     <None Include="sources\shaders\render_model_fs.glsl" />
     <None Include="sources\shaders\render_model_vs.glsl" />
     <None Include="sources\shaders\render_model_with_instancing_fs.glsl" />

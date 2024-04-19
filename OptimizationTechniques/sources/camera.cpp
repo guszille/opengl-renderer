@@ -87,6 +87,14 @@ void Camera::processTranslation(TDirection translationDirection, float deltaTime
 		position -= glm::normalize(glm::cross(direction, up)) * (speed * deltaTime);
 		break;
 
+	case TDirection::UP:
+		position += (speed * deltaTime) * up;
+		break;
+
+	case TDirection::DOWN:
+		position -= (speed * deltaTime) * up;
+		break;
+
 	default:
 		std::cout << "[ERROR] CAMERA: Translation direction not supported." << std::endl;
 	}

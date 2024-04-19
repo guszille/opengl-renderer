@@ -28,7 +28,7 @@ public:
 	void processInput(float deltaTime);
 	void render(float deltaTime);
 
-	void processGUI();
+	void processGUI(const ImGuiIO& io);
 
 	void setScreenDimensions(int width, int height);
 

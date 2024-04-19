@@ -113,6 +113,9 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 
+	glDepthMask(GL_TRUE); // Allows to enable/disable writing to the depth buffer.
+	glDepthFunc(GL_LESS);
+
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// Setup DEBUG context.
@@ -161,7 +164,7 @@ int main()
 		app.processInput(DELTA_TIME);
 		app.render(DELTA_TIME);
 
-		app.processGUI();
+		app.processGUI(io);
 
 		glfwSwapBuffers(window);
 	}

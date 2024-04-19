@@ -1,6 +1,6 @@
 #include "grass_scene.h"
 
-float quadVertices[] = {
+float doubleQuadVertices[] = {
     // positions         // uvs
     -0.5f, -0.5f,  0.0f,  1.0f,  0.0f, // bottom-left
      0.5f, -0.5f,  0.0f,  0.0f,  0.0f, // bottom-right
@@ -8,10 +8,27 @@ float quadVertices[] = {
      0.5f,  0.5f,  0.0f,  0.0f,  1.0f, // top-right
     -0.5f,  0.5f,  0.0f,  1.0f,  1.0f, // top-left
     -0.5f, -0.5f,  0.0f,  1.0f,  0.0f, // bottom-left
+     0.0f, -0.5f, -0.5f,  1.0f,  0.0f, // bottom-back
+     0.0f, -0.5f,  0.5f,  0.0f,  0.0f, // bottom-front
+     0.0f,  0.5f,  0.5f,  0.0f,  1.0f, // top-front
+     0.0f,  0.5f,  0.5f,  0.0f,  1.0f, // top-front
+     0.0f,  0.5f, -0.5f,  1.0f,  1.0f, // top-back
+     0.0f, -0.5f, -0.5f,  1.0f,  0.0f, // bottom-back
+};
+
+float triangleVertices[] = {
+    // positions         // normals
+    -0.5f, -0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-left
+     0.5f, -0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-right
+     0.0f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // top
 };
 
 GrassScene::GrassScene()
-	: Scene(), grassRenderShader(nullptr), vao(nullptr), vbo(nullptr), instanceMatrices(nullptr), texture(nullptr), modelMatrices(nullptr), instances(400), time()
+	: Scene(), currGrassType(GrassType::MONOCHROMATIC), nextGrassType(GrassType::MONOCHROMATIC),
+      grassRenderShader(nullptr), vao(nullptr), vbo(nullptr), instanceMatrices(nullptr), modelMatrices(nullptr), instances(900),
+      windDirection(1.0f, 0.0f, 1.0f), windIntensity(0.5f), time(),
+      texture(nullptr),
+      shadowMapRender(nullptr), shadowMap(nullptr), shadowMapRenderer(nullptr), renderShadowMap(false)
 {
 }
 
@@ -21,66 +38,151 @@ void GrassScene::setup()
     int axisLim = int(std::sqrtf(float(instances)));
     int axisOffset = axisLim / 2;
 
-	grassRenderShader = new ShaderProgram("sources/shaders/render_grass_vs.glsl", "sources/shaders/render_grass_fs.glsl");
-
-	modelMatrices = new glm::mat4[instances];
-    
-    for (int x = 0; x < axisLim; ++x)
+    if (currGrassType == GrassType::TEXTURIZED)
     {
-        for (int z = 0; z < axisLim; ++z)
+        float grassDensity = 8.0f;
+	    
+        grassRenderShader = new ShaderProgram("sources/shaders/render_texturized_grass_vs.glsl", "sources/shaders/render_texturized_grass_fs.glsl");
+    
+	    modelMatrices = new glm::mat4[instances];
+
+        for (int x = 0; x < axisLim; ++x)
         {
-            // float xOffset = static_cast<float>(rand() % 1) - 0.5f;
-            // float zOffset = static_cast<float>(rand() % 1) - 0.5f;
+            for (int z = 0; z < axisLim; ++z)
+            {
+                float xOffset = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+                float zOffset = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 
-            glm::mat4 model = glm::mat4(1.0f);
-            glm::vec3 position(x - axisOffset, 0.0f, z - axisOffset);
-            int index = x * axisLim + z;
+                glm::vec3 position = glm::vec3(x + xOffset - axisOffset, 0.0f, z + zOffset - axisOffset) / grassDensity;
+                glm::mat4 model = glm::mat4(1.0f);
+                int index = x * axisLim + z;
 
-            model = glm::translate(model, position);
+                model = glm::translate(model, position);
+                model = glm::scale(model, glm::vec3(0.5f));
 
-            modelMatrices[index] = model;
+                modelMatrices[index] = model;
+            }
         }
+
+        vao = new VAO();
+        vbo = new VBO(doubleQuadVertices, sizeof(doubleQuadVertices));
+        instanceMatrices = new VBO(&modelMatrices[0], instances * sizeof(glm::mat4));
+
+        vao->bind();
+        vbo->bind();
+
+        vao->setVertexAttribute(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(0));
+        vao->setVertexAttribute(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+
+        instanceMatrices->bind();
+
+        vao->setVertexAttribute(2, 4, GL_FLOAT, GL_FALSE, 4 * vec4_s, (void*)(0), 1);
+        vao->setVertexAttribute(3, 4, GL_FLOAT, GL_FALSE, 4 * vec4_s, (void*)(1 * vec4_s), 1);
+        vao->setVertexAttribute(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4_s, (void*)(2 * vec4_s), 1);
+        vao->setVertexAttribute(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4_s, (void*)(3 * vec4_s), 1);
+
+        vao->unbind(); // Unbind VAO before another buffer.
+        vbo->unbind();
+        instanceMatrices->unbind();
+
+	    texture = new Texture("resources/textures/grass1.png");
     }
+    else if (currGrassType == GrassType::MONOCHROMATIC)
+    {
+        float grassDensity = 8.0f;
 
-    vao = new VAO();
-    vbo = new VBO(quadVertices, sizeof(quadVertices));
-    instanceMatrices = new VBO(&modelMatrices[0], instances * sizeof(glm::mat4));
+        grassRenderShader = new ShaderProgram("sources/shaders/render_monochromatic_grass_vs.glsl", "sources/shaders/render_monochromatic_grass_fs.glsl");
 
-    vao->bind();
-    vbo->bind();
+        modelMatrices = new glm::mat4[instances];
 
-    vao->setVertexAttribute(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(0));
-    vao->setVertexAttribute(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+        for (int x = 0; x < axisLim; ++x)
+        {
+            for (int z = 0; z < axisLim; ++z)
+            {
+                float xOffset = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+                float zOffset = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 
-    instanceMatrices->bind();
+                glm::vec3 position = glm::vec3(x + xOffset - axisOffset, 0.0f, z + zOffset - axisOffset) / grassDensity;
+                glm::mat4 model = glm::mat4(1.0f);
+                int index = x * axisLim + z;
 
-    vao->setVertexAttribute(2, 4, GL_FLOAT, GL_FALSE, 4 * vec4_s, (void*)(0), 1);
-    vao->setVertexAttribute(3, 4, GL_FLOAT, GL_FALSE, 4 * vec4_s, (void*)(1 * vec4_s), 1);
-    vao->setVertexAttribute(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4_s, (void*)(2 * vec4_s), 1);
-    vao->setVertexAttribute(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4_s, (void*)(3 * vec4_s), 1);
+                // TODO: give a random rotation.
+                model = glm::translate(model, position);
+                model = glm::scale(model, glm::vec3(0.15f, 1.0f, 0.15f));
 
-    vao->unbind(); // Unbind VAO before another buffer.
-    vbo->unbind();
-    instanceMatrices->unbind();
+                modelMatrices[index] = model;
+            }
+        }
 
-	texture = new Texture("resources/textures/grass.png");
+        vao = new VAO();
+        vbo = new VBO(triangleVertices, sizeof(triangleVertices));
+        instanceMatrices = new VBO(&modelMatrices[0], instances * sizeof(glm::mat4));
+
+        vao->bind();
+        vbo->bind();
+
+        vao->setVertexAttribute(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(0));
+        vao->setVertexAttribute(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+
+        instanceMatrices->bind();
+
+        vao->setVertexAttribute(2, 4, GL_FLOAT, GL_FALSE, 4 * vec4_s, (void*)(0), 1);
+        vao->setVertexAttribute(3, 4, GL_FLOAT, GL_FALSE, 4 * vec4_s, (void*)(1 * vec4_s), 1);
+        vao->setVertexAttribute(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4_s, (void*)(2 * vec4_s), 1);
+        vao->setVertexAttribute(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4_s, (void*)(3 * vec4_s), 1);
+
+        vao->unbind(); // Unbind VAO before another buffer.
+        vbo->unbind();
+        instanceMatrices->unbind();
+
+        shadowMapRender = new ShaderProgram("sources/shaders/render_monochromatic_grass_shadow_map_vs.glsl", "sources/shaders/render_monochromatic_grass_shadow_map_fs.glsl");
+
+        shadowMap = new DepthMap(4096, 4096);
+
+        shadowMapRenderer = new DepthMapRenderer();
+
+        shadowMapRenderer->setup();
+    }
 }
 
 void GrassScene::clean()
 {
-    grassRenderShader->clean();
-    vao->clean();
-    vbo->clean();
-    instanceMatrices->clean();
-    texture->clean();
+    if (currGrassType == GrassType::TEXTURIZED)
+    {
+        grassRenderShader->clean();
+        vao->clean();
+        vbo->clean();
+        instanceMatrices->clean();
+        texture->clean();
 
-    delete grassRenderShader;
-    delete vao;
-    delete vbo;
-    delete instanceMatrices;
-    delete texture;
+        delete grassRenderShader;
+        delete vao;
+        delete vbo;
+        delete instanceMatrices;
+        delete texture;
 
-    delete[] modelMatrices;
+        delete[] modelMatrices;
+    }
+    else if (currGrassType == GrassType::MONOCHROMATIC)
+    {
+        grassRenderShader->clean();
+        vao->clean();
+        vbo->clean();
+        instanceMatrices->clean();
+        shadowMapRender->clean();
+        shadowMap->clean();
+        shadowMapRenderer->clean();
+
+        delete grassRenderShader;
+        delete vao;
+        delete vbo;
+        delete instanceMatrices;
+        delete shadowMapRender;
+        delete shadowMap;
+        delete shadowMapRenderer;
+
+        delete[] modelMatrices;
+    }
 }
 
 void GrassScene::update(float deltaTime)
@@ -93,27 +195,154 @@ void GrassScene::update(float deltaTime)
     {
         time += deltaTime;
     }
+
+    if (currGrassType != nextGrassType)
+    {
+        clean();
+        
+        currGrassType = nextGrassType;
+
+        setup();
+    }
 }
 
 void GrassScene::render(const Camera& camera, float deltaTime)
 {
-    glm::vec4 wind(glm::normalize(glm::vec3(0.5f, 0.0f, 1.0f)), time * 0.005f); // Wind direction (XYZ) and intensity (W).
+    if (currGrassType == GrassType::TEXTURIZED)
+    {
+        grassRenderShader->bind();
+        texture->bind(0);
+        vao->bind();
 
-    glClearColor(0.75f, 0.5f, 0.75f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        grassRenderShader->setUniformMatrix4fv("uProjectionMatrix", camera.getProjectionMatrix());
+        grassRenderShader->setUniformMatrix4fv("uViewMatrix", camera.getViewMatrix());
+        grassRenderShader->setUniform1i("uTexture", 0);
+        grassRenderShader->setUniform3f("uWindDirection", windDirection);
+        grassRenderShader->setUniform1f("uWindIntensity", windIntensity);
+        grassRenderShader->setUniform1f("uTime", time);
 
-    grassRenderShader->bind();
-    texture->bind(0);
-    vao->bind();
+        glClearColor(0.25f, 0.5f, 0.75f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    grassRenderShader->setUniformMatrix4fv("uProjectionMatrix", camera.getProjectionMatrix());
-    grassRenderShader->setUniformMatrix4fv("uViewMatrix", camera.getViewMatrix());
-    grassRenderShader->setUniform1i("uTexture", 0);
-    grassRenderShader->setUniform4f("uWind", wind);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 12, instances);
 
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, instances);
+        vao->unbind();
+        texture->unbind();
+        grassRenderShader->unbind();
+    }
+    else if (currGrassType == GrassType::MONOCHROMATIC)
+    {
+        int viewport[4];
+        float x = 2.5f * glm::cos(time / 2.0f);
+        float z = 2.5f * glm::sin(time / 2.0f);
 
-    vao->unbind();
-    texture->unbind();
-    grassRenderShader->unbind();
+        // glm::vec3 lightPosition = glm::vec3(x, 2.5f, z);
+        glm::vec3 lightPosition(5.0f, 2.5f, 5.0f);
+        
+        glm::mat4 lightProjectionMatrix = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 10.0f);
+        glm::mat4 lightViewMatrix = glm::lookAt(lightPosition, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 lightSpaceMatrix = lightProjectionMatrix * lightViewMatrix;
+
+        shadowMap->bindDepthBuffer(0);
+        vao->bind();
+
+        // Render shadow map.
+        shadowMap->bind();
+        shadowMapRender->bind();
+
+        shadowMapRender->setUniformMatrix4fv("uLightSpaceMatrix", lightSpaceMatrix);
+        shadowMapRender->setUniform3f("uWindDirection", windDirection);
+        shadowMapRender->setUniform1f("uWindIntensity", windIntensity);
+        shadowMapRender->setUniform1f("uTime", time);
+
+        glGetIntegerv(GL_VIEWPORT, viewport); // Save current viewport.
+        glViewport(0, 0, 4096, 4096);
+
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 3, instances);
+
+        shadowMapRender->unbind();
+        shadowMap->unbind();
+
+        // Render scene.
+        if (!renderShadowMap)
+        {
+            grassRenderShader->bind();
+
+            grassRenderShader->setUniformMatrix4fv("uProjectionMatrix", camera.getProjectionMatrix());
+            grassRenderShader->setUniformMatrix4fv("uViewMatrix", camera.getViewMatrix());
+            grassRenderShader->setUniformMatrix4fv("uLightSpaceMatrix", lightSpaceMatrix);
+            grassRenderShader->setUniform3f("uWindDirection", windDirection);
+            grassRenderShader->setUniform1f("uWindIntensity", windIntensity);
+            grassRenderShader->setUniform1f("uTime", time);
+
+            grassRenderShader->setUniform3f("uLight.ambient", glm::vec3(0.5f, 0.5f, 0.5f));
+            grassRenderShader->setUniform3f("uLight.diffuse", glm::vec3(1.0f, 1.0f, 1.0f));
+            grassRenderShader->setUniform3f("uLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+            grassRenderShader->setUniform3f("uLight.position", lightPosition);
+            grassRenderShader->setUniform3f("uMaterial.diffuse", glm::vec3(0.1f, 0.5f, 0.3f));
+            grassRenderShader->setUniform3f("uMaterial.specular", glm::vec3(0.2f, 0.6f, 0.4f));
+            grassRenderShader->setUniform1f("uMaterial.shininess", 64.0f);
+            grassRenderShader->setUniform1i("uShadowMap", 0);
+            grassRenderShader->setUniform3f("uViewPos", camera.getPosition());
+
+            glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+
+            glClearColor(0.25f, 0.5f, 0.75f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            glDrawArraysInstanced(GL_TRIANGLES, 0, 3, instances);
+    
+            grassRenderShader->unbind();
+        }
+        else
+        {
+            glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            shadowMapRenderer->render(0);
+        }
+
+        vao->unbind();
+        shadowMap->unbindDepthBuffer();
+    }
+}
+
+void GrassScene::processGUI()
+{
+    bool dialogOpen = true;
+    ImGui::Begin("Grass Rendering Dialog", &dialogOpen, ImGuiWindowFlags_MenuBar);
+
+    if (ImGui::BeginMenuBar())
+    {
+        if (ImGui::BeginMenu("Grass Type"))
+        {
+            if (ImGui::MenuItem("Texturized", "1", currGrassType == GrassType::TEXTURIZED))
+            {
+                nextGrassType = GrassType::TEXTURIZED;
+            }
+
+            if (ImGui::MenuItem("Monochromatic", "2", currGrassType == GrassType::MONOCHROMATIC))
+            {
+                nextGrassType = GrassType::MONOCHROMATIC;
+            }
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMenuBar();
+    }
+
+    ImGui::DragFloat3("Wind Direction", &windDirection[0], 0.5f);
+    ImGui::SliderFloat("Wind Intensity", &windIntensity, 0.005f, 5.0f);
+
+    if (currGrassType == GrassType::MONOCHROMATIC)
+    {
+        ImGui::Checkbox("Render Shadow Map", &renderShadowMap);
+    }
+
+    ImGui::End();
 }

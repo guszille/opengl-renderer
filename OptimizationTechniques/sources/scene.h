@@ -2,6 +2,8 @@
 
 #include <list>
 
+#include <imgui/imgui.h>
+
 #include "camera.h"
 #include "entity.h"
 
@@ -22,6 +24,8 @@ public:
 
 	virtual void update(float deltaTime) = 0;
 	virtual void render(const Camera& camera, float deltaTime) = 0;
+
+	virtual void processGUI() = 0;
 
 protected:
 	std::list<std::unique_ptr<Entity>> entities;

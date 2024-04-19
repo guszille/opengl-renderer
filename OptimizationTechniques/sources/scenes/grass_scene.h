@@ -5,7 +5,9 @@
 #include "../graphics/shader.h"
 #include "../graphics/buffer.h"
 #include "../graphics/texture.h"
+#include "../graphics/depthmap.h"
 #include "../scene.h"
+#include "../utils/dev/depthmap_renderer.h"
 
 class GrassScene : public Scene
 {
@@ -18,17 +20,31 @@ public:
 	void update(float deltaTime);
 	void render(const Camera& camera, float deltaTime);
 
+	void processGUI();
+
+	enum class GrassType { TEXTURIZED, MONOCHROMATIC };
+
 private:
+	GrassType currGrassType, nextGrassType;
+
 	ShaderProgram* grassRenderShader;
 
 	VAO* vao;
 	VBO* vbo;
 	VBO* instanceMatrices;
 
-	Texture* texture;
-
 	glm::mat4* modelMatrices;
 	int instances;
 
+	glm::vec3 windDirection;
+	float windIntensity;
+
 	float time;
+
+	Texture* texture;
+
+	ShaderProgram* shadowMapRender;
+	DepthMap* shadowMap;
+	DepthMapRenderer* shadowMapRenderer;
+	bool renderShadowMap;
 };

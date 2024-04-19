@@ -1,6 +1,6 @@
 #include "texture.h"
 
-Texture::Texture(const char* filepath, bool gammaCorrection)
+Texture::Texture(const char* filepath, bool gammaCorrection, bool genMipmap)
 	: ID()
 {
 	stbi_set_flip_vertically_on_load(true);
@@ -42,13 +42,25 @@ Texture::Texture(const char* filepath, bool gammaCorrection)
 		return;
 	}
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	if (genMipmap)
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	}
+	else
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	}
 
 	if (data)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
+
+		if (genMipmap)
+		{
+			glGenerateMipmap(GL_TEXTURE_2D);
+		}
 	}
 	else
 	{
