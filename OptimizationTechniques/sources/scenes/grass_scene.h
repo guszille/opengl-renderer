@@ -44,6 +44,7 @@ private:
 	Texture* texture;
 
 	ShaderProgram* shadowMapRender;
+	int shadowMapSize;
 	DepthMap* shadowMap;
 	DepthMapRenderer* shadowMapRenderer;
 	bool renderShadowMap;

@@ -15,14 +15,15 @@ void main()
     float normalizedVertexHeight = aPos.y + 0.5; // Normalizing range [-0.5, 0.5].
 
     // Calculate wind displacement.
-    vec3 windDisplacement = vec3(0.0);
+    vec3 displacement = vec3(0.0);
 
-    windDisplacement.x = normalizedVertexHeight * uWindIntensity * uWindDirection.x * sin((aPos.x + aPos.y + aPos.z) * uTime);
-    windDisplacement.y = normalizedVertexHeight * uWindIntensity * uWindDirection.y * cos((aPos.x - aPos.y + aPos.z) * uTime);
-    windDisplacement.z = normalizedVertexHeight * uWindIntensity * uWindDirection.z * sin((aPos.x - aPos.y - aPos.z) * uTime);
+    displacement.x = normalizedVertexHeight * uWindIntensity * uWindDirection.x * sin((aPos.x + aPos.y + aPos.z) * uTime);
+    displacement.y = normalizedVertexHeight * uWindIntensity * uWindDirection.y * cos((aPos.x - aPos.y + aPos.z) * uTime);
+    displacement.z = normalizedVertexHeight * uWindIntensity * uWindDirection.z * sin((aPos.x - aPos.y - aPos.z) * uTime);
 
     // Apply to grass position.
-    vec3 displacedPos = aPos + windDisplacement;
+    vec3 modelSpacePos = vec3(aInstanceMatrix * vec4(aPos, 1.0));
+    vec3 newPos = modelSpacePos + displacement;
 
-    gl_Position = uLightSpaceMatrix * aInstanceMatrix * vec4(displacedPos, 1.0);
+    gl_Position = uLightSpaceMatrix * vec4(newPos, 1.0);
 }

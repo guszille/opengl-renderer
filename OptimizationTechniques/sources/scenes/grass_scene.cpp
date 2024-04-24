@@ -25,10 +25,10 @@ float triangleVertices[] = {
 
 GrassScene::GrassScene()
 	: Scene(), currGrassType(GrassType::MONOCHROMATIC), nextGrassType(GrassType::MONOCHROMATIC),
-      grassRenderShader(nullptr), vao(nullptr), vbo(nullptr), instanceMatrices(nullptr), modelMatrices(nullptr), instances(900),
+      grassRenderShader(nullptr), vao(nullptr), vbo(nullptr), instanceMatrices(nullptr), modelMatrices(nullptr), instances(10000),
       windDirection(1.0f, 0.0f, 1.0f), windIntensity(0.5f), time(),
       texture(nullptr),
-      shadowMapRender(nullptr), shadowMap(nullptr), shadowMapRenderer(nullptr), renderShadowMap(false)
+      shadowMapRender(nullptr), shadowMapSize(8192), shadowMap(nullptr), shadowMapRenderer(nullptr), renderShadowMap(false)
 {
 }
 
@@ -101,12 +101,14 @@ void GrassScene::setup()
             {
                 float xOffset = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
                 float zOffset = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+                float rOffset = static_cast<float>(rand()) / 360.0f;
 
                 glm::vec3 position = glm::vec3(x + xOffset - axisOffset, 0.0f, z + zOffset - axisOffset) / grassDensity;
                 glm::mat4 model = glm::mat4(1.0f);
                 int index = x * axisLim + z;
 
                 // TODO: give a random rotation.
+                model = glm::rotate(model, glm::radians(rOffset), glm::vec3(0.0f, 1.0f, 0.0f));
                 model = glm::translate(model, position);
                 model = glm::scale(model, glm::vec3(0.15f, 1.0f, 0.15f));
 
@@ -137,7 +139,7 @@ void GrassScene::setup()
 
         shadowMapRender = new ShaderProgram("sources/shaders/render_monochromatic_grass_shadow_map_vs.glsl", "sources/shaders/render_monochromatic_grass_shadow_map_fs.glsl");
 
-        shadowMap = new DepthMap(4096, 4096);
+        shadowMap = new DepthMap(shadowMapSize, shadowMapSize);
 
         shadowMapRenderer = new DepthMapRenderer();
 
@@ -199,7 +201,7 @@ void GrassScene::update(float deltaTime)
     if (currGrassType != nextGrassType)
     {
         clean();
-        
+
         currGrassType = nextGrassType;
 
         setup();
@@ -233,13 +235,13 @@ void GrassScene::render(const Camera& camera, float deltaTime)
     else if (currGrassType == GrassType::MONOCHROMATIC)
     {
         int viewport[4];
-        float x = 2.5f * glm::cos(time / 2.0f);
-        float z = 2.5f * glm::sin(time / 2.0f);
+        // float x = 10.0f * glm::cos(time / 2.0f);
+        // float z = 10.0f * glm::sin(time / 2.0f);
 
-        // glm::vec3 lightPosition = glm::vec3(x, 2.5f, z);
-        glm::vec3 lightPosition(5.0f, 2.5f, 5.0f);
-        
-        glm::mat4 lightProjectionMatrix = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 10.0f);
+        // glm::vec3 lightPosition = glm::vec3(x, 10.0f, z);
+        glm::vec3 lightPosition(10.0f, 10.0f, 10.0f);
+
+        glm::mat4 lightProjectionMatrix = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 25.0f);
         glm::mat4 lightViewMatrix = glm::lookAt(lightPosition, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 lightSpaceMatrix = lightProjectionMatrix * lightViewMatrix;
 
@@ -256,7 +258,7 @@ void GrassScene::render(const Camera& camera, float deltaTime)
         shadowMapRender->setUniform1f("uTime", time);
 
         glGetIntegerv(GL_VIEWPORT, viewport); // Save current viewport.
-        glViewport(0, 0, 4096, 4096);
+        glViewport(0, 0, shadowMapSize, shadowMapSize);
 
         glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -334,6 +336,11 @@ void GrassScene::processGUI()
         }
 
         ImGui::EndMenuBar();
+    }
+
+    if (currGrassType == GrassType::MONOCHROMATIC)
+    {
+        ImGui::Text("%i instances (%i vertices)", instances, 3 * instances);
     }
 
     ImGui::DragFloat3("Wind Direction", &windDirection[0], 0.5f);
