@@ -14,6 +14,7 @@ class Texture
 {
 public:
 	Texture(const char* filepath, bool gammaCorrection = false, bool genMipmap = false);
+	Texture(unsigned char* data, int width, int height, int internalFormat, int format);
 
 	void bind(int unit);
 	void unbind();

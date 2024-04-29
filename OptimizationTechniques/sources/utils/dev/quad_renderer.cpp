@@ -1,11 +1,11 @@
-#include "depthmap_renderer.h"
+#include "quad_renderer.h"
 
-DepthMapRenderer::DepthMapRenderer()
-	: VAO(), VBO(), IBO(), depthMapRender(nullptr)
+QuadRenderer::QuadRenderer()
+	: VAO(), VBO(), IBO(), quadRender(nullptr)
 {
 }
 
-void DepthMapRenderer::setup()
+void QuadRenderer::setup()
 {
 	float vertices[] = {
 		-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
@@ -19,7 +19,7 @@ void DepthMapRenderer::setup()
 		2, 3, 0
 	};
 
-	depthMapRender = new ShaderProgram("sources/shaders/dev/render_depth_map_vs.glsl", "sources/shaders/dev/render_depth_map_fs.glsl");
+	quadRender = new ShaderProgram("sources/shaders/dev/render_debug_quad_vs.glsl", "sources/shaders/dev/render_debug_quad_fs.glsl");
 
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
@@ -43,22 +43,22 @@ void DepthMapRenderer::setup()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void DepthMapRenderer::clean()
+void QuadRenderer::clean()
 {
 	glDeleteBuffers(1, &IBO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteVertexArrays(1, &VAO);
 
-	depthMapRender->clean();
+	quadRender->clean();
 
-	delete depthMapRender;
+	delete quadRender;
 }
 
-void DepthMapRenderer::render(int unit)
+void QuadRenderer::render(int unit)
 {
-	depthMapRender->bind();
+	quadRender->bind();
 
-	depthMapRender->setUniform1i("uDepthMap", unit);
+	quadRender->setUniform1i("uTexture", unit);
 
 	glBindVertexArray(VAO);
 
@@ -66,5 +66,5 @@ void DepthMapRenderer::render(int unit)
 
 	glBindVertexArray(0);
 
-	depthMapRender->unbind();
+	quadRender->unbind();
 }

@@ -7,7 +7,8 @@
 #include "../graphics/texture.h"
 #include "../graphics/depthmap.h"
 #include "../scene.h"
-#include "../utils/dev/depthmap_renderer.h"
+#include "../utils/noise_generator.h"
+#include "../utils/dev/quad_renderer.h"
 
 class GrassScene : public Scene
 {
@@ -41,11 +42,21 @@ private:
 
 	float time;
 
-	Texture* texture;
+	Texture* colorMapTex;
+
+	glm::vec3 diffuseComp;
+	glm::vec3 specularComp;
+	float specularShininess;
 
 	ShaderProgram* shadowMapRender;
 	int shadowMapSize;
 	DepthMap* shadowMap;
-	DepthMapRenderer* shadowMapRenderer;
+
+	Texture* noiseTex;
+	float noiseScale;
+	float noiseStrength;
+	
+	QuadRenderer* quadRenderer;
 	bool renderShadowMap;
+	bool renderNoiseTex;
 };

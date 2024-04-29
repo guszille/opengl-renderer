@@ -19,6 +19,7 @@ in VS_OUT {
     vec3 fragPos;
     vec4 fragPosLightSpace;
     vec3 normal;
+    float normalizedHeight;
 } fs_in;
 
 uniform Light uLight;

@@ -4,10 +4,10 @@
 
 #include "../../graphics/shader.h"
 
-class DepthMapRenderer
+class QuadRenderer
 {
 public:
-	DepthMapRenderer();
+	QuadRenderer();
 
 	void setup();
 	void clean();
@@ -17,5 +17,5 @@ public:
 private:
 	uint32_t VAO, VBO, IBO;
 
-	ShaderProgram* depthMapRender;
+	ShaderProgram* quadRender;
 };

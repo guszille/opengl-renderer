@@ -169,7 +169,8 @@
     <ClCompile Include="sources\entity.cpp" />
     <ClCompile Include="sources\scene.cpp" />
     <ClCompile Include="sources\scenes\frustum_culling_scene.cpp" />
-    <ClCompile Include="sources\utils\dev\depthmap_renderer.cpp" />
+    <ClCompile Include="sources\utils\dev\quad_renderer.cpp" />
+    <ClCompile Include="sources\utils\noise_generator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\application.h" />
@@ -185,11 +186,12 @@
     <ClInclude Include="sources\entity.h" />
     <ClInclude Include="sources\scene.h" />
     <ClInclude Include="sources\scenes\frustum_culling_scene.h" />
-    <ClInclude Include="sources\utils\dev\depthmap_renderer.h" />
+    <ClInclude Include="sources\utils\dev\quad_renderer.h" />
+    <ClInclude Include="sources\utils\noise_generator.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="sources\shaders\dev\render_depth_map_fs.glsl" />
-    <None Include="sources\shaders\dev\render_depth_map_vs.glsl" />
+    <None Include="sources\shaders\dev\render_debug_quad_fs.glsl" />
+    <None Include="sources\shaders\dev\render_debug_quad_vs.glsl" />
     <None Include="sources\shaders\render_monochromatic_grass_fs.glsl" />
     <None Include="sources\shaders\render_monochromatic_grass_shadow_map_fs.glsl" />
     <None Include="sources\shaders\render_monochromatic_grass_shadow_map_vs.glsl" />

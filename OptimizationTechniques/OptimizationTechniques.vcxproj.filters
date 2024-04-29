@@ -81,7 +81,10 @@
     <ClCompile Include="sources\graphics\depthmap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sources\utils\dev\depthmap_renderer.cpp">
+    <ClCompile Include="sources\utils\dev\quad_renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\utils\noise_generator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -125,7 +128,10 @@
     <ClInclude Include="sources\graphics\depthmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sources\utils\dev\depthmap_renderer.h">
+    <ClInclude Include="sources\utils\dev\quad_renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\utils\noise_generator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -140,7 +146,7 @@
     <None Include="sources\shaders\render_monochromatic_grass_fs.glsl" />
     <None Include="sources\shaders\render_monochromatic_grass_shadow_map_vs.glsl" />
     <None Include="sources\shaders\render_monochromatic_grass_shadow_map_fs.glsl" />
-    <None Include="sources\shaders\dev\render_depth_map_vs.glsl" />
-    <None Include="sources\shaders\dev\render_depth_map_fs.glsl" />
+    <None Include="sources\shaders\dev\render_debug_quad_vs.glsl" />
+    <None Include="sources\shaders\dev\render_debug_quad_fs.glsl" />
   </ItemGroup>
 </Project>
