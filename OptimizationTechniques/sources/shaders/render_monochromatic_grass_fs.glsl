@@ -19,7 +19,7 @@ in VS_OUT {
     vec3 fragPos;
     vec4 fragPosLightSpace;
     vec3 normal;
-    float normalizedHeight;
+    float normalizedFragHeight;
 } fs_in;
 
 uniform Light uLight;
@@ -87,11 +87,15 @@ void main()
 
     float diffuseStr = max(dot(fragNormal, lightDir), 0.0);
     float specularStr = pow(max(dot(fragNormal, halfwayDir), 0.0), uMaterial.shininess);
+    float lightScale = pow(fs_in.normalizedFragHeight, 2.0);
+
+    vec3 diffuseColor = (lightScale * vec3(0.3, 0.1, 0.1)) + uMaterial.diffuse;
+    vec3 specularColor = uMaterial.specular;
 
     // Calculating Blinn-Phong lighting components.
-    vec3 ambient = uLight.ambient * uMaterial.diffuse;
-    vec3 diffuse = uLight.diffuse * (diffuseStr * uMaterial.diffuse);
-    vec3 specular = uLight.specular * (specularStr * uMaterial.specular);
+    vec3 ambient = uLight.ambient * diffuseColor;
+    vec3 diffuse = uLight.diffuse * (diffuseStr * diffuseColor);
+    vec3 specular = uLight.specular * (specularStr * specularColor);
 
     // Claculating shadowing.
     float shadowingFactor = calcShadowingFactor(lightDir);

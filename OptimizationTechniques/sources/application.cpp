@@ -3,7 +3,7 @@
 Application::Application(int screenWidth, int screenHeight)
 	: screenWidth(screenWidth), screenHeight(screenHeight),
 	  keyboardState(), keyboardProcessedState(), mouseState(), mouseProcessedState(), cursorAttached(false), cursorTracked(true), lastMousePosition(), currMousePosition(),
-	  camera(glm::vec3(0.0f, 5.0f, 5.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), { float(screenWidth) / float(screenHeight) }),
+	  camera(glm::vec3(0.0f, 2.5f, 5.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), { float(screenWidth) / float(screenHeight) }),
 	  lastSceneType(SceneTypes::GRASS), currSceneType(SceneTypes::GRASS), currScene(nullptr)
 {
 }
@@ -131,7 +131,7 @@ void Application::processGUI(const ImGuiIO& io)
 	ImGui_ImplGlfw_NewFrame();
 
 	ImGui::NewFrame();
-	// ImGui::ShowDemoWindow(); // Show demo window! :)
+	ImGui::ShowDemoWindow(); // Show demo window! :)
 
 	bool dialogOpen = true;
 	ImGui::Begin("Debug Dialog", &dialogOpen, ImGuiWindowFlags_MenuBar);

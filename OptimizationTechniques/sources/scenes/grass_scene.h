@@ -24,6 +24,7 @@ public:
 	void processGUI();
 
 	enum class GrassType { TEXTURIZED, MONOCHROMATIC };
+	enum class WindEffect { SIMPLE, NOISED };
 
 private:
 	GrassType currGrassType, nextGrassType;
@@ -37,6 +38,7 @@ private:
 	glm::mat4* modelMatrices;
 	int instances;
 
+	WindEffect windEffect;
 	glm::vec3 windDirection;
 	float windIntensity;
 

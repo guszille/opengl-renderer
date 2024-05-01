@@ -13,30 +13,35 @@ uniform float uWindIntensity;
 uniform float uNoiseScale;
 uniform float uNoiseStrength;
 uniform float uTime;
+uniform float uMinVertexHeight = 0.0;
+uniform float uMaxVertexHeight = 1.0;
 
-vec3 calcSimpleDisplacement()
+uniform int uWindEffect; // 0 to "simple" and 1 to "noised".
+
+vec3 calcSimpleDisplacement(float normalizedVertexHeight)
 {
-    float normalizedVertexHeight = aPos.y + 0.5; // Normalizing range [-0.5, 0.5].
+    if (normalizedVertexHeight > 0.0)
+    {
+        float x = normalizedVertexHeight * uWindIntensity * uWindDirection.x * sin((aPos.x + aPos.y + aPos.z) * uTime);
+        float y = normalizedVertexHeight * uWindIntensity * uWindDirection.y * cos((aPos.x - aPos.y + aPos.z) * uTime);
+        float z = normalizedVertexHeight * uWindIntensity * uWindDirection.z * sin((aPos.x - aPos.y - aPos.z) * uTime);
 
-    float x = normalizedVertexHeight * uWindIntensity * uWindDirection.x * sin((aPos.x + aPos.y + aPos.z) * uTime);
-    float y = normalizedVertexHeight * uWindIntensity * uWindDirection.y * cos((aPos.x - aPos.y + aPos.z) * uTime);
-    float z = normalizedVertexHeight * uWindIntensity * uWindDirection.z * sin((aPos.x - aPos.y - aPos.z) * uTime);
+        return vec3(x, y, z);
+    }
 
-    return vec3(x, y, z);
+    return vec3(0.0);
 }
 
-vec3 calcNoisedDisplacement(vec3 vertexModelSpacePos)
+vec3 calcNoisedDisplacement(float normalizedVertexHeight, vec3 vertexModelSpacePos)
 {
-    float normalizedVertexHeight = aPos.y + 0.5; // Normalizing range [-0.5, 0.5].
-    float xNoiseCoord = vertexModelSpacePos.x * uNoiseScale + uTime * 0.1;
-    float yNoiseCoord = vertexModelSpacePos.z * uNoiseScale + uTime * 0.1;
-    float noiseValue = texture(uNoiseTex, vec2(xNoiseCoord, yNoiseCoord)).r;
-
     if (normalizedVertexHeight > 0.0)
     {
         float swayFactor = pow(normalizedVertexHeight, 2.0); // Adjust the wind effect based on the vertex height.
+        float xNoiseCoord = uNoiseScale * (vertexModelSpacePos.x + uTime);
+        float yNoiseCoord = uNoiseScale * (vertexModelSpacePos.z + uTime);
+        float noiseValue = texture(uNoiseTex, vec2(xNoiseCoord, yNoiseCoord)).r;
 
-        return uWindDirection * uWindIntensity * swayFactor * sin(uTime * uWindIntensity) * uNoiseStrength * noiseValue;
+        return uWindDirection * uWindIntensity * swayFactor * sin(uWindIntensity * uTime) * uNoiseStrength * noiseValue;
     }
 
     return vec3(0.0);
@@ -44,10 +49,25 @@ vec3 calcNoisedDisplacement(vec3 vertexModelSpacePos)
 
 void main()
 {
-    // Calculate wind displacement and apply to grass position.
+    float normalizedHeight = (uMinVertexHeight + aPos.y) / uMaxVertexHeight;
+
     vec3 modelSpacePos = vec3(aInstanceMatrix * vec4(aPos, 1.0));
-    vec3 displacement = calcNoisedDisplacement(modelSpacePos);
-    vec3 newPos = modelSpacePos + displacement;
+    vec3 newPos = modelSpacePos;
+
+    // Calculate wind displacement and apply to grass position.
+    switch (uWindEffect)
+    {
+    case 0:       
+        newPos += calcSimpleDisplacement(normalizedHeight);
+        break;
+
+    case 1:       
+        newPos += calcNoisedDisplacement(normalizedHeight, modelSpacePos);
+        break;
+
+    default:
+        break;
+    }
 
     gl_Position = uLightSpaceMatrix * vec4(newPos, 1.0);
 }

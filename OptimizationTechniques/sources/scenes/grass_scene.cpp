@@ -33,14 +33,35 @@ float planeVertices[] = {
      0.5f, -0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
 };
 
+float leafVertices[] = {
+    // positions         // normals
+    -0.5f,  0.0f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-left
+     0.5f,  0.0f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-right
+    -0.3f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // top
+    -0.3f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // top-left
+     0.5f,  0.0f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom
+     0.3f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // top-right
+
+    -0.3f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-left
+     0.3f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-right
+    -0.2f,  0.8f,  0.0f,  0.0f,  0.0f,  1.0f, // top
+    -0.2f,  0.8f,  0.0f,  0.0f,  0.0f,  1.0f, // top-left
+     0.3f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom
+     0.2f,  0.8f,  0.0f,  0.0f,  0.0f,  1.0f, // top-right
+
+    -0.2f,  0.8f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-left
+     0.2f,  0.8f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-right
+     0.0f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f, // top
+};
+
 GrassScene::GrassScene()
 	: Scene(), currGrassType(GrassType::MONOCHROMATIC), nextGrassType(GrassType::MONOCHROMATIC),
-      grassRenderShader(nullptr), vao(nullptr), vbo(nullptr), instanceMatrices(nullptr), modelMatrices(nullptr), instances(10000),
-      windDirection(1.0f, 0.0f, 1.0f), windIntensity(0.5f), time(),
+      grassRenderShader(nullptr), vao(nullptr), vbo(nullptr), instanceMatrices(nullptr), modelMatrices(nullptr), instances(40000),
+      windEffect(WindEffect::NOISED), windDirection(1.0f, 0.0f, 1.0f), windIntensity(0.5f), time(),
       colorMapTex(nullptr),
       diffuseComp(0.2f, 0.5f, 0.1f), specularComp(0.5f, 0.5f, 0.5f), specularShininess(64.0f),
       shadowMapRender(nullptr), shadowMapSize(8192), shadowMap(nullptr),
-      noiseTex(nullptr), noiseScale(1.0f), noiseStrength(1.0f),
+      noiseTex(nullptr), noiseScale(0.1f), noiseStrength(1.0f),
       quadRenderer(nullptr), renderShadowMap(false), renderNoiseTex(nullptr)
 {
 }
@@ -102,13 +123,13 @@ void GrassScene::setup()
     }
     else if (currGrassType == GrassType::MONOCHROMATIC)
     {
-        float grassDensity = 8.0f;
+        float grassDensity = 16.0f;
         const int noiseTexSize = 256;
         unsigned char* noiseData = new unsigned char[noiseTexSize * noiseTexSize];
 
         grassRenderShader = new ShaderProgram("sources/shaders/render_monochromatic_grass_vs.glsl", "sources/shaders/render_monochromatic_grass_fs.glsl");
 
-        NoiseGenerator& heightNoiseGenerator = NoiseGenerator::getInstance(rand(), 5.0f);
+        NoiseGenerator& heightNoiseGenerator = NoiseGenerator::getInstance(rand(), 1.0f);
 
         modelMatrices = new glm::mat4[instances];
 
@@ -128,14 +149,14 @@ void GrassScene::setup()
 
                 model = glm::rotate(model, glm::radians(rOffset), glm::vec3(0.0f, 1.0f, 0.0f));
                 model = glm::translate(model, position);
-                model = glm::scale(model, glm::vec3(0.15f, heightScale, 0.15f));
+                model = glm::scale(model, glm::vec3(0.1f, heightScale, 0.1f));
 
                 modelMatrices[x * axisLim + z] = model;
             }
         }
 
         vao = new VAO();
-        vbo = new VBO(triangleVertices, sizeof(triangleVertices));
+        vbo = new VBO(leafVertices, sizeof(leafVertices));
         instanceMatrices = new VBO(&modelMatrices[0], instances * sizeof(glm::mat4));
 
         vao->bind();
@@ -159,7 +180,7 @@ void GrassScene::setup()
 
         shadowMap = new DepthMap(shadowMapSize, shadowMapSize);
 
-        NoiseGenerator& windNoiseGenerator = NoiseGenerator::getInstance(rand(), 0.005f);
+        NoiseGenerator& windNoiseGenerator = NoiseGenerator::getInstance(rand(), 0.05f);
 
         for (int x = 0; x < noiseTexSize; ++x)
         {
@@ -259,7 +280,7 @@ void GrassScene::render(const Camera& camera, float deltaTime)
         grassRenderShader->setUniformMatrix4fv("uProjectionMatrix", camera.getProjectionMatrix());
         grassRenderShader->setUniformMatrix4fv("uViewMatrix", camera.getViewMatrix());
         grassRenderShader->setUniform1i("uTexture", 0);
-        grassRenderShader->setUniform3f("uWindDirection", windDirection);
+        grassRenderShader->setUniform3f("uWindDirection", glm::normalize(windDirection));
         grassRenderShader->setUniform1f("uWindIntensity", windIntensity);
         grassRenderShader->setUniform1f("uTime", time);
 
@@ -294,11 +315,13 @@ void GrassScene::render(const Camera& camera, float deltaTime)
         shadowMapRender->bind();
 
         shadowMapRender->setUniformMatrix4fv("uLightSpaceMatrix", lightSpaceMatrix);
-        shadowMapRender->setUniform3f("uWindDirection", windDirection);
+        shadowMapRender->setUniform1i("uWindEffect", int(windEffect));
+        shadowMapRender->setUniform3f("uWindDirection", glm::normalize(windDirection));
         shadowMapRender->setUniform1f("uWindIntensity", windIntensity);
         shadowMapRender->setUniform1f("uNoiseScale", noiseScale);
         shadowMapRender->setUniform1f("uNoiseStrength", noiseStrength);
         shadowMapRender->setUniform1f("uTime", time);
+
         shadowMapRender->setUniform1i("uNoiseTex", 1);
 
         glGetIntegerv(GL_VIEWPORT, viewport); // Save current viewport.
@@ -306,7 +329,7 @@ void GrassScene::render(const Camera& camera, float deltaTime)
 
         glClear(GL_DEPTH_BUFFER_BIT);
 
-        glDrawArraysInstanced(GL_TRIANGLES, 0, 3, instances);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 15, instances);
 
         shadowMapRender->unbind();
         shadowMap->unbind();
@@ -319,6 +342,7 @@ void GrassScene::render(const Camera& camera, float deltaTime)
             grassRenderShader->setUniformMatrix4fv("uProjectionMatrix", camera.getProjectionMatrix());
             grassRenderShader->setUniformMatrix4fv("uViewMatrix", camera.getViewMatrix());
             grassRenderShader->setUniformMatrix4fv("uLightSpaceMatrix", lightSpaceMatrix);
+            grassRenderShader->setUniform1i("uWindEffect", int(windEffect));
             grassRenderShader->setUniform3f("uWindDirection", windDirection);
             grassRenderShader->setUniform1f("uWindIntensity", windIntensity);
             grassRenderShader->setUniform1f("uNoiseScale", noiseScale);
@@ -341,7 +365,7 @@ void GrassScene::render(const Camera& camera, float deltaTime)
             glClearColor(0.25f, 0.5f, 0.75f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            glDrawArraysInstanced(GL_TRIANGLES, 0, 3, instances);
+            glDrawArraysInstanced(GL_TRIANGLES, 0, 15, instances);
     
             grassRenderShader->unbind();
         }
@@ -413,16 +437,38 @@ void GrassScene::processGUI()
             ImGui::ColorEdit3("Diffuse Comp.", &diffuseComp[0]);
             ImGui::ColorEdit3("Specular Comp.", &specularComp[0]);
 
-            ImGui::SliderFloat("Sininess", &specularShininess, -8.0f, 96.0f);
+            ImGui::SliderFloat("Shininess", &specularShininess, -8.0f, 96.0f);
         }
 
         ImGui::SeparatorText("Wind Properties");
         {
+            const char* comboItems[] = { "Simple", "Noised (Simplex Noise)" };
+            static int comboSelectedItem = int(windEffect);
+            ImGui::Combo("Effect", &comboSelectedItem, comboItems, 2);
+            {
+                if (comboSelectedItem != int(windEffect))
+                {
+                    switch (comboSelectedItem)
+                    {
+                    case 0:
+                        windEffect = WindEffect::SIMPLE;
+                        break;
+
+                    case 1:
+                        windEffect = WindEffect::NOISED;
+                        break;
+
+                    default:
+                        break;
+                    }
+                }
+            }
+
             ImGui::DragFloat3("Direction", &windDirection[0], 0.25f, -1.0f, 1.0f, "%.2f");
 
             ImGui::SliderFloat("Intensity", &windIntensity, 0.005f, 2.000f, "%.3f");
-            ImGui::SliderFloat("Noise Scale", &noiseScale, 0.005f, 5.000f, "%.3f");
-            ImGui::SliderFloat("Noise Strength", &noiseStrength, 0.005f, 5.000f, "%.3f");
+            ImGui::SliderFloat("Noise Scale", &noiseScale, 0.005f, 2.000f, "%.3f");
+            ImGui::SliderFloat("Noise Strength", &noiseStrength, 0.005f, 2.000f, "%.3f");
         }
 
         ImGui::SeparatorText("Etc");
