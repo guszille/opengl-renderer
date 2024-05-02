@@ -1,13 +1,15 @@
-# OpenGL Renderer
+# OpenGL Renderer (ZGL Renderer)
 
 Custom OpenGL renderer, developed to explore some graphics optimization techniques, in C++.
 
-# Features
+## Features
 
-- Frustum Culling;
-- Instancing;
-- Grass Simulation.
+- Scene 1: Applying Frustum Culling technique over a entity-children scene hierarchy;
+- Scene 2: Applying Instancing to render multiple objects in the scene;
+- Scene 3: Applying Instancing to render multiple grass leaves and simulating wind animation on them.
 
-# Gallery
+## Gallery
 
-![Grass](./media/grass_anim.gif)
+<p align="center">Grass</p>
+
+![Grass](./Media/grass_anim.gif)
