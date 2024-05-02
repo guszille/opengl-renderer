@@ -31,9 +31,9 @@ private:
 
 	ShaderProgram* grassRenderShader;
 
-	VAO* vao;
-	VBO* vbo;
-	VBO* instanceMatrices;
+	VAO* grassVAO;
+	VBO* grassVBO;
+	VBO* instanceMatricesVBO;
 
 	glm::mat4* modelMatrices;
 	int instances;
@@ -46,13 +46,18 @@ private:
 
 	Texture* colorMapTex;
 
+	ShaderProgram* groundRenderShader;
+
+	VAO* groundVAO;
+	VBO* groundVBO;
+
 	glm::vec3 diffuseComp;
 	glm::vec3 specularComp;
 	float specularShininess;
 
 	ShaderProgram* shadowMapRender;
-	int shadowMapSize;
 	DepthMap* shadowMap;
+	int shadowMapSize;
 
 	Texture* noiseTex;
 	float noiseScale;
@@ -61,4 +66,6 @@ private:
 	QuadRenderer* quadRenderer;
 	bool renderShadowMap;
 	bool renderNoiseTex;
+
+	glm::vec3 clearColor;
 };

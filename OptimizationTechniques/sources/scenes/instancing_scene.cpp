@@ -9,7 +9,7 @@ void InstancingScene::setup()
 {
 	int axisLim = int(std::sqrtf(float(instances)));
 
-	instancingModelRenderShader = new ShaderProgram("sources/shaders/render_model_with_instancing_vs.glsl", "sources/shaders/render_model_with_instancing_fs.glsl");
+	instancingModelRenderShader = new ShaderProgram("sources/shaders/2_render_model_with_instancing_vs.glsl", "sources/shaders/2_render_model_with_instancing_fs.glsl");
 	marsModel = new Model("resources/models/mars/mars.obj");
 
 	modelMatrices = new glm::mat4[instances];

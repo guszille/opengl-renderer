@@ -131,7 +131,7 @@ void Application::processGUI(const ImGuiIO& io)
 	ImGui_ImplGlfw_NewFrame();
 
 	ImGui::NewFrame();
-	ImGui::ShowDemoWindow(); // Show demo window! :)
+	// ImGui::ShowDemoWindow(); // Show demo window! :)
 
 	bool dialogOpen = true;
 	ImGui::Begin("Debug Dialog", &dialogOpen, ImGuiWindowFlags_MenuBar);
