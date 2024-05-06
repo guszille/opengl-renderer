@@ -148,7 +148,7 @@
     <None Include="sources\shaders\4_render_monochromatic_grass_shadow_map_fs.glsl" />
     <None Include="sources\shaders\dev\render_debug_quad_vs.glsl" />
     <None Include="sources\shaders\dev\render_debug_quad_fs.glsl" />
-    <None Include="sources\shaders\6_render_monochromatic_ground_vs.glsl" />
-    <None Include="sources\shaders\6_render_monochromatic_ground_fs.glsl" />
+    <None Include="sources\shaders\6_render_monochromatic_generic_model_vs.glsl" />
+    <None Include="sources\shaders\6_render_monochromatic_generic_model_fs.glsl" />
   </ItemGroup>
 </Project>

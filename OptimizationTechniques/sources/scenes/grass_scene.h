@@ -1,5 +1,9 @@
 #pragma once
 
+#define _USE_MATH_DEFINES
+
+#include <cmath>
+
 #include <glm/glm.hpp>
 
 #include "../graphics/shader.h"
@@ -46,14 +50,25 @@ private:
 
 	Texture* colorMapTex;
 
-	ShaderProgram* groundRenderShader;
+	ShaderProgram* genericModelRenderShader;
 
 	VAO* groundVAO;
 	VBO* groundVBO;
 
-	glm::vec3 diffuseComp;
-	glm::vec3 specularComp;
-	float specularShininess;
+	VAO* sphereVAO;
+	VBO* sphereVBO;
+	IBO* sphereIBO;
+	
+	std::vector<float> sphereVertices;
+	std::vector<uint32_t> sphereIndices;
+
+	glm::vec3 lightAmbientComp;
+	glm::vec3 lightDiffuseComp;
+	glm::vec3 lightSpecularComp;
+
+	glm::vec3 grassDiffuseComp;
+	glm::vec3 grassSpecularComp;
+	float grassSpecularShininess;
 
 	ShaderProgram* shadowMapRender;
 	DepthMap* shadowMap;
@@ -68,4 +83,6 @@ private:
 	bool renderNoiseTex;
 
 	glm::vec3 clearColor;
+
+	void generateSphereObject(float radius, int slices, int stacks, std::vector<float>& vertices, std::vector<uint32_t>& indices);
 };
