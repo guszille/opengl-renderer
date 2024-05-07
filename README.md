@@ -13,3 +13,5 @@ Custom OpenGL renderer, developed to explore some graphics optimization techniqu
 <p align="center">Grass</p>
 
 ![Grass](./Media/grass_anim_1.gif)
+
+![Grass](./Media/grass_anim_2.gif)

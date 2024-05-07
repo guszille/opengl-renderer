@@ -1,5 +1,15 @@
 #include "grass_scene.h"
 
+float singleQuadVertices[] = {
+    // positions         // uvs
+    -0.5f, -0.5f,  0.0f,  1.0f,  0.0f, // bottom-left
+     0.5f, -0.5f,  0.0f,  0.0f,  0.0f, // bottom-right
+     0.5f,  0.5f,  0.0f,  0.0f,  1.0f, // top-right
+     0.5f,  0.5f,  0.0f,  0.0f,  1.0f, // top-right
+    -0.5f,  0.5f,  0.0f,  1.0f,  1.0f, // top-left
+    -0.5f, -0.5f,  0.0f,  1.0f,  0.0f, // bottom-left
+};
+
 float doubleQuadVertices[] = {
     // positions         // uvs
     -0.5f, -0.5f,  0.0f,  1.0f,  0.0f, // bottom-left
@@ -8,6 +18,7 @@ float doubleQuadVertices[] = {
      0.5f,  0.5f,  0.0f,  0.0f,  1.0f, // top-right
     -0.5f,  0.5f,  0.0f,  1.0f,  1.0f, // top-left
     -0.5f, -0.5f,  0.0f,  1.0f,  0.0f, // bottom-left
+     
      0.0f, -0.5f, -0.5f,  1.0f,  0.0f, // bottom-back
      0.0f, -0.5f,  0.5f,  0.0f,  0.0f, // bottom-front
      0.0f,  0.5f,  0.5f,  0.0f,  1.0f, // top-front
@@ -99,12 +110,11 @@ void GrassScene::setup()
 
                 glm::vec3 position = glm::vec3(x + xOffset - axisOffset, 0.0f, z + zOffset - axisOffset) / grassDensity;
                 glm::mat4 modelMatrix = glm::mat4(1.0f);
-                int index = x * axisLim + z;
 
                 modelMatrix = glm::translate(modelMatrix, position);
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
 
-                modelMatrices[index] = modelMatrix;
+                modelMatrices[x * axisLim + z] = modelMatrix;
             }
         }
         
@@ -143,7 +153,7 @@ void GrassScene::setup()
         {
             modelMatrices = new glm::mat4[instances];
 
-            NoiseGenerator& heightNoiseGenerator = NoiseGenerator::getInstance(std::rand(), 1.0f);
+            NoiseGenerator& heightNoiseGenerator = NoiseGenerator::getInstance(std::rand(), 0.5f);
 
             float grassDensity = 16.0f;
 
@@ -158,7 +168,7 @@ void GrassScene::setup()
                     glm::vec3 position = glm::vec3(x + xOffset - axisOffset, 0.0f, z + zOffset - axisOffset) / grassDensity;
                     glm::mat4 modelMatrix = glm::mat4(1.0f);
 
-                    float heightScale = 1.0f + heightNoiseGenerator.getNoise2D(position.x, position.z) / 2.0f; // [-1.0f, 1.0f] to [0.5f, 1.5f].
+                    float heightScale = 0.5f + 2.0f * std::abs(heightNoiseGenerator.getNoise2D(position.x, position.z)); // [-1.0f, 1.0f] to [0.5f, 2.5f].
 
                     modelMatrix = glm::rotate(modelMatrix, glm::radians(rOffset), glm::vec3(0.0f, 1.0f, 0.0f));
                     modelMatrix = glm::translate(modelMatrix, position);
