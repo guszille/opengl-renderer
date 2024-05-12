@@ -87,6 +87,9 @@
     <ClCompile Include="sources\utils\noise_generator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sources\scenes\particles_scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\utils\debug.h">
@@ -134,6 +137,9 @@
     <ClInclude Include="sources\utils\noise_generator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="sources\scenes\particles_scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="sources\shaders\1_render_model_vs.glsl" />
@@ -150,5 +156,7 @@
     <None Include="sources\shaders\dev\render_debug_quad_fs.glsl" />
     <None Include="sources\shaders\6_render_monochromatic_generic_model_vs.glsl" />
     <None Include="sources\shaders\6_render_monochromatic_generic_model_fs.glsl" />
+    <None Include="sources\shaders\7_render_particles_vs.glsl" />
+    <None Include="sources\shaders\7_render_particles_fs.glsl" />
   </ItemGroup>
 </Project>

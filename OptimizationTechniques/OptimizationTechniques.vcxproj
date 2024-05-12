@@ -165,6 +165,7 @@
     <ClCompile Include="sources\graphics\texture.cpp" />
     <ClCompile Include="sources\scenes\grass_scene.cpp" />
     <ClCompile Include="sources\scenes\instancing_scene.cpp" />
+    <ClCompile Include="sources\scenes\particles_scene.cpp" />
     <ClCompile Include="sources\utils\debug.cpp" />
     <ClCompile Include="sources\entity.cpp" />
     <ClCompile Include="sources\scene.cpp" />
@@ -182,6 +183,7 @@
     <ClInclude Include="sources\graphics\texture.h" />
     <ClInclude Include="sources\scenes\grass_scene.h" />
     <ClInclude Include="sources\scenes\instancing_scene.h" />
+    <ClInclude Include="sources\scenes\particles_scene.h" />
     <ClInclude Include="sources\utils\debug.h" />
     <ClInclude Include="sources\entity.h" />
     <ClInclude Include="sources\scene.h" />
@@ -190,6 +192,8 @@
     <ClInclude Include="sources\utils\noise_generator.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="sources\shaders\7_render_particles_fs.glsl" />
+    <None Include="sources\shaders\7_render_particles_vs.glsl" />
     <None Include="sources\shaders\dev\render_debug_quad_fs.glsl" />
     <None Include="sources\shaders\dev\render_debug_quad_vs.glsl" />
     <None Include="sources\shaders\5_render_monochromatic_grass_fs.glsl" />

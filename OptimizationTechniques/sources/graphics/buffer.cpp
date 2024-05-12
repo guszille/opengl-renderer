@@ -41,11 +41,11 @@ int VAO::retrieveMaxVertexAttributes()
 	return numberOfAttributes;
 }
 
-VBO::VBO(const void* vertices, int size) : ID()
+VBO::VBO(const void* vertices, int size, GLenum usage) : ID()
 {
 	glGenBuffers(1, &ID);
 	glBindBuffer(GL_ARRAY_BUFFER, ID);
-	glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, size, vertices, usage);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -59,16 +59,23 @@ void VBO::unbind()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+void VBO::update(const void* vertices, int size)
+{
+	glBindBuffer(GL_ARRAY_BUFFER, ID);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, size, vertices);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
 void VBO::clean()
 {
 	glDeleteBuffers(1, &ID);
 }
 
-IBO::IBO(const uint32_t* indices, int size) : ID()
+IBO::IBO(const uint32_t* indices, int size, GLenum usage) : ID()
 {
 	glGenBuffers(1, &ID);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ID);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, indices, usage);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 

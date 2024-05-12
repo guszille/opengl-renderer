@@ -4,7 +4,7 @@ Application::Application(int screenWidth, int screenHeight)
 	: screenWidth(screenWidth), screenHeight(screenHeight),
 	  keyboardState(), keyboardProcessedState(), mouseState(), mouseProcessedState(), cursorAttached(false), cursorTracked(true), lastMousePosition(), currMousePosition(),
 	  camera(glm::vec3(0.0f, 2.5f, 5.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), { float(screenWidth) / float(screenHeight) }),
-	  lastSceneType(SceneTypes::GRASS), currSceneType(SceneTypes::GRASS), currScene(nullptr)
+	  lastSceneType(SceneTypes::PARTICLES), currSceneType(SceneTypes::PARTICLES), currScene(nullptr)
 {
 }
 
@@ -22,6 +22,10 @@ void Application::setup()
 
 	case SceneTypes::GRASS:
 		currScene = new GrassScene();
+		break;
+	
+	case SceneTypes::PARTICLES:
+		currScene = new ParticlesScene();
 		break;
 
 	default:
@@ -65,6 +69,10 @@ void Application::update(float deltaTime)
 
 			case SceneTypes::GRASS:
 				currScene = new GrassScene();
+				break;
+
+			case SceneTypes::PARTICLES:
+				currScene = new ParticlesScene();
 				break;
 
 			default:
@@ -155,6 +163,11 @@ void Application::processGUI(const ImGuiIO& io)
 			if (ImGui::MenuItem("Grass", "3", currSceneType == SceneTypes::GRASS))
 			{
 				currSceneType = SceneTypes::GRASS;
+			}
+
+			if (ImGui::MenuItem("Particles", "4", currSceneType == SceneTypes::PARTICLES))
+			{
+				currSceneType = SceneTypes::PARTICLES;
 			}
 
 			ImGui::EndMenu();

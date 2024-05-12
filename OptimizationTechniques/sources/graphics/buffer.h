@@ -25,10 +25,12 @@ private:
 class VBO
 {
 public:
-	VBO(const void* vertices, int size);
+	VBO(const void* vertices, int size, GLenum usage = GL_STATIC_DRAW);
 
 	void bind();
 	void unbind();
+
+	void update(const void* vertices, int size);
 
 	void clean();
 
@@ -39,7 +41,7 @@ private:
 class IBO
 {
 public:
-	IBO(const uint32_t* indices, int size);
+	IBO(const uint32_t* indices, int size, GLenum usage = GL_STATIC_DRAW);
 
 	void bind();
 	void unbind();

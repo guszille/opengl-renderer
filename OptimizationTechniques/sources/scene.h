@@ -11,7 +11,8 @@ enum class SceneTypes
 {
 	INSTANCING,
 	FRUSTUM_CULLING,
-	GRASS
+	GRASS,
+	PARTICLES
 };
 
 class Scene
