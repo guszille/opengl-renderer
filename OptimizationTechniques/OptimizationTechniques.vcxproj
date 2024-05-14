@@ -166,6 +166,7 @@
     <ClCompile Include="sources\scenes\grass_scene.cpp" />
     <ClCompile Include="sources\scenes\instancing_scene.cpp" />
     <ClCompile Include="sources\scenes\particles_scene.cpp" />
+    <ClCompile Include="sources\systems\particle_system.cpp" />
     <ClCompile Include="sources\utils\debug.cpp" />
     <ClCompile Include="sources\entity.cpp" />
     <ClCompile Include="sources\scene.cpp" />
@@ -184,6 +185,7 @@
     <ClInclude Include="sources\scenes\grass_scene.h" />
     <ClInclude Include="sources\scenes\instancing_scene.h" />
     <ClInclude Include="sources\scenes\particles_scene.h" />
+    <ClInclude Include="sources\systems\particle_system.h" />
     <ClInclude Include="sources\utils\debug.h" />
     <ClInclude Include="sources\entity.h" />
     <ClInclude Include="sources\scene.h" />

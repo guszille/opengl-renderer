@@ -11,9 +11,11 @@ float billboardVertices[] = {
 };
 
 ParticlesScene::ParticlesScene()
-	: maxParticles(1000), aliveParticles(0), lastUsedParticle(0), particles(nullptr), particlesPositions(nullptr), particlesColors(nullptr),
-	  vao(nullptr), vbo(nullptr), instancesPositionsVBO(nullptr), instancesColorsVBO(nullptr),
-	  particlesRenderShader(nullptr)
+	: maxParticles(1000), aliveParticles(0), lastUsedParticle(0),
+	  particles(nullptr), particlesBufferData(nullptr),
+	  vao(nullptr), vbo(nullptr), instancesVBO(nullptr),
+	  particlesRenderShader(nullptr),
+	  particleAtlas(nullptr)
 {
 }
 
@@ -27,53 +29,45 @@ void ParticlesScene::setup()
 		particles[i].cameraDistance = -1.0f;
 	}
 
-	particlesPositions = new float[4 * maxParticles];
-	particlesColors = new unsigned char[4 * maxParticles];
+	particlesBufferData = new float[8 * maxParticles]; // 3 (position) + 1 (scale) + 4 (color) = 8.
 
 	vao = new VAO();
 	vbo = new VBO(billboardVertices, sizeof(billboardVertices));
-	instancesPositionsVBO = new VBO(NULL, 4 * maxParticles * sizeof(float), GL_STREAM_DRAW);
-	instancesColorsVBO = new VBO(NULL, 4 * maxParticles * sizeof(unsigned char), GL_STREAM_DRAW);
+	instancesVBO = new VBO(NULL, 8 * maxParticles * sizeof(float), GL_STREAM_DRAW);
 
 	vao->bind();
 	vbo->bind();
 
 	vao->setVertexAttribute(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(0));
 
-	instancesPositionsVBO->bind();
+	instancesVBO->bind();
 
-	vao->setVertexAttribute(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(0), 1);
-
-	instancesColorsVBO->bind();
-
-	vao->setVertexAttribute(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, 4 * sizeof(unsigned char), (void*)(0), 1);
+	vao->setVertexAttribute(1, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(0), 1);
+	vao->setVertexAttribute(2, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(4 * sizeof(float)), 1);
 
 	vao->unbind(); // Unbind VAO before another buffer.
 	vbo->unbind();
-
-	instancesPositionsVBO->unbind();
-	instancesColorsVBO->unbind();
+	instancesVBO->unbind();
 
 	particlesRenderShader = new ShaderProgram("sources/shaders/7_render_particles_vs.glsl", "sources/shaders/7_render_particles_fs.glsl");
+
+	particleAtlas = new Texture("resources/textures/particle_atlas.png");
 }
 
 void ParticlesScene::clean()
 {
 	vao->clean();
 	vbo->clean();
-	instancesPositionsVBO->clean();
-	instancesColorsVBO->clean();
+	instancesVBO->clean();
 	particlesRenderShader->clean();
 
 	delete vao;
 	delete vbo;
-	delete instancesPositionsVBO;
-	delete instancesColorsVBO;
+	delete instancesVBO;
 	delete particlesRenderShader;
 
 	delete[] particles;
-	delete[] particlesPositions;
-	delete[] particlesColors;
+	delete[] particlesBufferData;
 }
 
 void ParticlesScene::update(float deltaTime)
@@ -84,25 +78,26 @@ void ParticlesScene::update(float deltaTime)
 	{
 		int particleIndex = findUnusedParticle();
 		float spread = 1.5f;
+		float minParticleSize = 0.1f;
 
 		particles[particleIndex].life = 4.0f; // This particle will live 4 seconds.
-		particles[particleIndex].position = glm::vec3(0.0f, 0.0f, -20.0f);
+		particles[particleIndex].position = glm::vec3(0.0f, 0.0f, -25.0f);
 
 		// Very bad way to generate a random direction; 
 		// See for instance http://stackoverflow.com/questions/5408276/python-uniform-spherical-distribution instead,
 		// combined with some user-controlled parameters (main direction, spread, etc).
 		//
-		glm::vec3 mainDir(0.0f, 10.0f, 0.0f);
-		glm::vec3 randomDir((std::rand() % 200 - 100.0f) / 100.0f, (std::rand() % 200 - 100.0f) / 100.0f, (std::rand() % 200 - 100.0f) / 100.0f);
+		glm::vec3 primaryDir(0.0f, 15.0f, 0.0f);
+		glm::vec3 secondaryDir((std::rand() % 200 - 100.0f) / 100.0f, (std::rand() % 200 - 100.0f) / 100.0f, (std::rand() % 200 - 100.0f) / 100.0f);
 
-		particles[particleIndex].speed = mainDir + randomDir * spread;
+		particles[particleIndex].speed = primaryDir + secondaryDir * spread;
 
-		particles[particleIndex].r = (std::rand() % 256);
-		particles[particleIndex].g = (std::rand() % 256);
-		particles[particleIndex].b = (std::rand() % 256);
-		particles[particleIndex].a = (std::rand() % 256) / 3;
+		particles[particleIndex].color.r = (std::rand() % 100) / 100.0f;
+		particles[particleIndex].color.g = (std::rand() % 100) / 100.0f;
+		particles[particleIndex].color.b = (std::rand() % 100) / 100.0f;
+		particles[particleIndex].color.a = 1.0f;
 
-		particles[particleIndex].size = 0.1f + (std::rand() % 1000) / 2000.0f;
+		particles[particleIndex].size = minParticleSize + (std::rand() % 100) / 100.0f;
 	}
 }
 
@@ -111,39 +106,36 @@ void ParticlesScene::render(const Camera& camera, float deltaTime)
 	glm::vec3 camFront = camera.getDirection();
 	glm::vec3 camRight = glm::cross(camFront, camera.getUp());
 	glm::vec3 camUp = glm::cross(camRight, camFront);
+	glm::vec3 gravity(0.0f, -9.81f, 0.0f);
 
 	aliveParticles = 0;
 
 	for (int i = 0; i < maxParticles; i++)
 	{
-		Particle& particle = particles[i];
-
-		if (particle.life > 0.0f)
+		if (particles[i].life > 0.0f)
 		{
-			particle.life -= deltaTime;
+			particles[i].life -= deltaTime;
 
-			if (particle.life > 0.0f)
+			if (particles[i].life > 0.0f)
 			{
-				// Simulate simple physics: gravity only, no collisions.
-				particle.speed += glm::vec3(0.0f, -9.81f, 0.0f) * deltaTime * 0.5f;
-				particle.position += particle.speed * deltaTime;
+				particles[i].speed += gravity * deltaTime;
+				particles[i].position += particles[i].speed * deltaTime;
+				particles[i].cameraDistance = glm::length2(particles[i].position - camera.getPosition());
+				particles[i].color.a -= 0.25f * deltaTime;
 
-				particle.cameraDistance = glm::length2(particle.position - camera.getPosition());
-
-				particlesPositions[4 * aliveParticles + 0] = particle.position.x;
-				particlesPositions[4 * aliveParticles + 1] = particle.position.y;
-				particlesPositions[4 * aliveParticles + 2] = particle.position.z;
-				particlesPositions[4 * aliveParticles + 3] = particle.size;
-
-				particlesColors[4 * aliveParticles + 0] = particle.r;
-				particlesColors[4 * aliveParticles + 1] = particle.g;
-				particlesColors[4 * aliveParticles + 2] = particle.b;
-				particlesColors[4 * aliveParticles + 3] = particle.a;
+				particlesBufferData[8 * aliveParticles + 0] = particles[i].position.x;
+				particlesBufferData[8 * aliveParticles + 1] = particles[i].position.y;
+				particlesBufferData[8 * aliveParticles + 2] = particles[i].position.z;
+				particlesBufferData[8 * aliveParticles + 3] = particles[i].size;
+				particlesBufferData[8 * aliveParticles + 4] = particles[i].color.r;
+				particlesBufferData[8 * aliveParticles + 5] = particles[i].color.g;
+				particlesBufferData[8 * aliveParticles + 6] = particles[i].color.b;
+				particlesBufferData[8 * aliveParticles + 7] = particles[i].color.a;
 			}
 			else
 			{
 				// Particles that just died will be put at the end of the buffer in "sortParticles();".
-				particle.cameraDistance = -1.0f;
+				particles[i].cameraDistance = -1.0f;
 			}
 
 			aliveParticles++;
@@ -152,16 +144,18 @@ void ParticlesScene::render(const Camera& camera, float deltaTime)
 
 	sortParticles();
 
-	instancesPositionsVBO->update(&particlesPositions[0], 4 * aliveParticles * sizeof(float));
-	instancesColorsVBO->update(&particlesColors[0], 4 * aliveParticles * sizeof(unsigned char));
+	instancesVBO->update(&particlesBufferData[0], 8 * aliveParticles * sizeof(float));
 
+	particleAtlas->bind(0);
 	particlesRenderShader->bind();
 	vao->bind();
 
 	particlesRenderShader->setUniformMatrix4fv("uProjectionMatrix", camera.getProjectionMatrix());
 	particlesRenderShader->setUniformMatrix4fv("uViewMatrix", camera.getViewMatrix());
-	particlesRenderShader->setUniform3f("uWorldCamRight", camRight);
-	particlesRenderShader->setUniform3f("uWorldCamUp", camUp);
+	particlesRenderShader->setUniform3f("uCamRight", camRight);
+	particlesRenderShader->setUniform3f("uCamUp", camUp);
+
+	particlesRenderShader->setUniform1i("uParticleAtlas", 0);
 
 	glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -170,6 +164,7 @@ void ParticlesScene::render(const Camera& camera, float deltaTime)
 
 	vao->unbind();
 	particlesRenderShader->unbind();
+	particleAtlas->unbind();
 }
 
 void ParticlesScene::processGUI()

@@ -7,15 +7,16 @@
 
 #include "../graphics/shader.h"
 #include "../graphics/buffer.h"
+#include "../graphics/texture.h"
 #include "../scene.h"
 
 struct Particle
 {
 	glm::vec3 position, speed;
+	glm::vec4 color;
 
-	unsigned char r, g, b, a; // Color.
-	float size, angle, weight;
-	float life; // Remaining life of the particle. If less than zero, the particle is dead and unused.
+	float size;
+	float life; // Remaining life of the particle. If less than zero, the particle is dead.
 	float cameraDistance; // Squared distance to the camera. If dead, its value will be "-1.0f".
 
 	bool operator<(const Particle& that) const
@@ -42,15 +43,15 @@ private:
 
 	Particle* particles;
 
-	float* particlesPositions;
-	unsigned char* particlesColors;
+	float* particlesBufferData;
 
 	VAO* vao;
 	VBO* vbo;
-	VBO* instancesPositionsVBO;
-	VBO* instancesColorsVBO;
+	VBO* instancesVBO;
 
 	ShaderProgram* particlesRenderShader;
+
+	Texture* particleAtlas;
 
 	int findUnusedParticle();
 

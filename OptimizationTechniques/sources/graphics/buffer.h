@@ -46,6 +46,8 @@ public:
 	void bind();
 	void unbind();
 
+	void update(const uint32_t* indices, int size);
+
 	void clean();
 
 private:

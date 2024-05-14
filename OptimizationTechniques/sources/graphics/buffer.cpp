@@ -89,6 +89,13 @@ void IBO::unbind()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
+void IBO::update(const uint32_t* indices, int size)
+{
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ID);
+	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, size, indices);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
 void IBO::clean()
 {
 	glDeleteBuffers(1, &ID);
