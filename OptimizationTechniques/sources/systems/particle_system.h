@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <algorithm>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/compatibility.hpp>
@@ -11,7 +12,7 @@
 
 struct ParticleProps
 {
-	glm::vec3 position, linearVelocity;
+	glm::vec3 position, linearVelocity, acceleration;
 	glm::vec4 initialColor, finalColor;
 
 	float initialSize, finalSize;
@@ -21,14 +22,18 @@ struct ParticleProps
 
 struct Particle
 {
-	glm::vec3 position, linearVelocity;
+	glm::vec3 position, linearVelocity, acceleration;
 	glm::vec4 initialColor, finalColor;
 
 	float initialSize, finalSize;
 	float rotation = 0.0f, angularVelocity = 0.0f;
 	float lifeTime = 1.0f, lifeRemaining = 0.0f;
+	float cameraDistance;
 
-	bool active = false;
+	bool operator<(const Particle& that) const
+	{
+		return this->cameraDistance > that.cameraDistance; // Sort in reverse order. Far particles are drawn first.
+	}
 };
 
 class ParticleSystem
@@ -42,15 +47,22 @@ public:
 	void update(float deltaTime);
 	void render(const Camera& camera, float deltaTime);
 
-	void emit(const ParticleProps& particleProps);
+	void emitParticle(const ParticleProps& particleProps);
 
 private:
 	std::vector<Particle> particlePool;
-	uint32_t poolIndex = -1;
+	int poolIndex = -1, activeParticles = 0;
 
 	VAO* vao;
 	VBO* vbo;
 	IBO* ibo;
-	VBO* instancesVBO;
+	VBO* instancesMatricesVBO;
+	VBO* instancesColorsVBO;
 	ShaderProgram* particleRenderShader;
+
+	std::vector<glm::mat4> instancesMatricesBufferData;
+	std::vector<glm::vec4> instancesColorsBufferData;
+
+	void updatePoolIndex();
+	void sortPool();
 };

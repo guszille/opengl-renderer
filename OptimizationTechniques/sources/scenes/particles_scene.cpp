@@ -1,73 +1,31 @@
 #include "particles_scene.h"
 
-float billboardVertices[] = {
-	// positions
-	-0.5f, -0.5f,  0.0f, // bottom-left
-	 0.5f, -0.5f,  0.0f, // bottom-right
-	 0.5f,  0.5f,  0.0f, // top-right
-	 0.5f,  0.5f,  0.0f, // top-right
-	-0.5f,  0.5f,  0.0f, // top-left
-	-0.5f, -0.5f,  0.0f, // bottom-left
-};
-
 ParticlesScene::ParticlesScene()
-	: maxParticles(1000), aliveParticles(0), lastUsedParticle(0),
-	  particles(nullptr), particlesBufferData(nullptr),
-	  vao(nullptr), vbo(nullptr), instancesVBO(nullptr),
-	  particlesRenderShader(nullptr),
-	  particleAtlas(nullptr)
+	: maxParticles(500), particleSystem(), baseParticleProps(), clearColor(0.1f, 0.5f, 0.7f)
 {
+    baseParticleProps.position = glm::vec3(0.0f, -2.5f, -25.0f);
+    baseParticleProps.linearVelocity = glm::vec3(5.0f, 10.0f, 5.0f);
+    baseParticleProps.acceleration = glm::vec3(0.0f, -9.81f, 0.0f); // Gravity.
+    baseParticleProps.rotation = 0.0f;
+    baseParticleProps.angularVelocity = 90.0f;
+
+    baseParticleProps.initialColor = glm::vec4(1.0f, 0.7f, 0.0f, 1.0f);
+    baseParticleProps.finalColor = glm::vec4(0.7f, 0.0f, 0.0f, 0.0f);
+
+    baseParticleProps.initialSize = 0.25f;
+    baseParticleProps.finalSize = 1.25f;
+
+    baseParticleProps.lifeTime = 2.5f;
 }
 
 void ParticlesScene::setup()
 {
-	particles = new Particle[maxParticles];
-
-	for (int i = 0; i < maxParticles; i++)
-	{
-		particles[i].life = -1.0f;
-		particles[i].cameraDistance = -1.0f;
-	}
-
-	particlesBufferData = new float[8 * maxParticles]; // 3 (position) + 1 (scale) + 4 (color) = 8.
-
-	vao = new VAO();
-	vbo = new VBO(billboardVertices, sizeof(billboardVertices));
-	instancesVBO = new VBO(NULL, 8 * maxParticles * sizeof(float), GL_STREAM_DRAW);
-
-	vao->bind();
-	vbo->bind();
-
-	vao->setVertexAttribute(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(0));
-
-	instancesVBO->bind();
-
-	vao->setVertexAttribute(1, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(0), 1);
-	vao->setVertexAttribute(2, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(4 * sizeof(float)), 1);
-
-	vao->unbind(); // Unbind VAO before another buffer.
-	vbo->unbind();
-	instancesVBO->unbind();
-
-	particlesRenderShader = new ShaderProgram("sources/shaders/7_render_particles_vs.glsl", "sources/shaders/7_render_particles_fs.glsl");
-
-	particleAtlas = new Texture("resources/textures/particle_atlas.png");
+	particleSystem.setup(maxParticles, "sources/shaders/7_render_particles_vs.glsl", "sources/shaders/7_render_particles_fs.glsl");
 }
 
 void ParticlesScene::clean()
 {
-	vao->clean();
-	vbo->clean();
-	instancesVBO->clean();
-	particlesRenderShader->clean();
-
-	delete vao;
-	delete vbo;
-	delete instancesVBO;
-	delete particlesRenderShader;
-
-	delete[] particles;
-	delete[] particlesBufferData;
+	particleSystem.clean();
 }
 
 void ParticlesScene::update(float deltaTime)
@@ -76,127 +34,68 @@ void ParticlesScene::update(float deltaTime)
 
 	for (int i = 0; i < newParticles; i++)
 	{
-		int particleIndex = findUnusedParticle();
-		float spread = 1.5f;
-		float minParticleSize = 0.1f;
+		ParticleProps particleProps;
 
-		particles[particleIndex].life = 4.0f; // This particle will live 4 seconds.
-		particles[particleIndex].position = glm::vec3(0.0f, 0.0f, -25.0f);
+		float x = (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)) - 0.5f;
+		float y = (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)) + 0.5f;
+		float z = (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)) - 0.5f;
+		float r = (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)) - 0.5f;
 
-		// Very bad way to generate a random direction; 
-		// See for instance http://stackoverflow.com/questions/5408276/python-uniform-spherical-distribution instead,
-		// combined with some user-controlled parameters (main direction, spread, etc).
-		//
-		glm::vec3 primaryDir(0.0f, 15.0f, 0.0f);
-		glm::vec3 secondaryDir((std::rand() % 200 - 100.0f) / 100.0f, (std::rand() % 200 - 100.0f) / 100.0f, (std::rand() % 200 - 100.0f) / 100.0f);
+		particleProps.position = baseParticleProps.position;
+		particleProps.linearVelocity = baseParticleProps.linearVelocity * glm::vec3(x, y, z);
+		particleProps.acceleration = baseParticleProps.acceleration;
+		particleProps.rotation = baseParticleProps.rotation;
+		particleProps.angularVelocity = baseParticleProps.angularVelocity * 2.0f * r;
 
-		particles[particleIndex].speed = primaryDir + secondaryDir * spread;
+		particleProps.initialColor = baseParticleProps.initialColor;
+		particleProps.finalColor = baseParticleProps.finalColor;
 
-		particles[particleIndex].color.r = (std::rand() % 100) / 100.0f;
-		particles[particleIndex].color.g = (std::rand() % 100) / 100.0f;
-		particles[particleIndex].color.b = (std::rand() % 100) / 100.0f;
-		particles[particleIndex].color.a = 1.0f;
+		particleProps.initialSize = baseParticleProps.initialSize;
+		particleProps.finalSize = baseParticleProps.finalSize;
 
-		particles[particleIndex].size = minParticleSize + (std::rand() % 100) / 100.0f;
+		particleProps.lifeTime = baseParticleProps.lifeTime;
+
+		particleSystem.emitParticle(particleProps);
 	}
+
+	particleSystem.update(deltaTime);
 }
 
 void ParticlesScene::render(const Camera& camera, float deltaTime)
 {
-	glm::vec3 camFront = camera.getDirection();
-	glm::vec3 camRight = glm::cross(camFront, camera.getUp());
-	glm::vec3 camUp = glm::cross(camRight, camFront);
-	glm::vec3 gravity(0.0f, -9.81f, 0.0f);
-
-	aliveParticles = 0;
-
-	for (int i = 0; i < maxParticles; i++)
-	{
-		if (particles[i].life > 0.0f)
-		{
-			particles[i].life -= deltaTime;
-
-			if (particles[i].life > 0.0f)
-			{
-				particles[i].speed += gravity * deltaTime;
-				particles[i].position += particles[i].speed * deltaTime;
-				particles[i].cameraDistance = glm::length2(particles[i].position - camera.getPosition());
-				particles[i].color.a -= 0.25f * deltaTime;
-
-				particlesBufferData[8 * aliveParticles + 0] = particles[i].position.x;
-				particlesBufferData[8 * aliveParticles + 1] = particles[i].position.y;
-				particlesBufferData[8 * aliveParticles + 2] = particles[i].position.z;
-				particlesBufferData[8 * aliveParticles + 3] = particles[i].size;
-				particlesBufferData[8 * aliveParticles + 4] = particles[i].color.r;
-				particlesBufferData[8 * aliveParticles + 5] = particles[i].color.g;
-				particlesBufferData[8 * aliveParticles + 6] = particles[i].color.b;
-				particlesBufferData[8 * aliveParticles + 7] = particles[i].color.a;
-			}
-			else
-			{
-				// Particles that just died will be put at the end of the buffer in "sortParticles();".
-				particles[i].cameraDistance = -1.0f;
-			}
-
-			aliveParticles++;
-		}
-	}
-
-	sortParticles();
-
-	instancesVBO->update(&particlesBufferData[0], 8 * aliveParticles * sizeof(float));
-
-	particleAtlas->bind(0);
-	particlesRenderShader->bind();
-	vao->bind();
-
-	particlesRenderShader->setUniformMatrix4fv("uProjectionMatrix", camera.getProjectionMatrix());
-	particlesRenderShader->setUniformMatrix4fv("uViewMatrix", camera.getViewMatrix());
-	particlesRenderShader->setUniform3f("uCamRight", camRight);
-	particlesRenderShader->setUniform3f("uCamUp", camUp);
-
-	particlesRenderShader->setUniform1i("uParticleAtlas", 0);
-
-	glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
+	glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, aliveParticles);
-
-	vao->unbind();
-	particlesRenderShader->unbind();
-	particleAtlas->unbind();
+	particleSystem.render(camera, deltaTime);
 }
 
 void ParticlesScene::processGUI()
 {
-}
+    bool dialogOpen = true;
+    ImGui::Begin("Particles Dialog", &dialogOpen);
 
-int ParticlesScene::findUnusedParticle()
-{
-	for (int i = lastUsedParticle; i < maxParticles; i++)
-	{
-		if (particles[i].life < 0.0f)
-		{
-			lastUsedParticle = i;
+    ImGui::Text("%i particles.", maxParticles);
 
-			return i;
-		}
-	}
+	ImGui::SeparatorText("Particle Properties");
 
-	for (int i = 0; i < lastUsedParticle; i++)
-	{
-		if (particles[i].life < 0.0f)
-		{
-			lastUsedParticle = i;
+    ImGui::DragFloat3("Spawn Position", glm::value_ptr(baseParticleProps.position), 0.05f, -100.0f, 100.0f, "%.1f");
+    ImGui::DragFloat3("Linear Velocity", glm::value_ptr(baseParticleProps.linearVelocity), 0.25f, -50.0f, 50.0f, "%.2f");
+    ImGui::DragFloat3("Acceleration", glm::value_ptr(baseParticleProps.acceleration), 0.25f, -50.0f, 50.0f, "%.2f");
 
-			return i;
-		}
-	}
+    ImGui::SliderFloat("Spawn Rotation", &baseParticleProps.rotation, 0.5f, 360.0f, "%.1f");
+    ImGui::SliderFloat("Angular Velocity", &baseParticleProps.angularVelocity, 0.5f, 720.0f, "%.1f");
 
-	return 0; // All particles are taken, override the first one.
-}
+    ImGui::ColorEdit4("Initial Color", glm::value_ptr(baseParticleProps.initialColor));
+    ImGui::ColorEdit4("Final Color", glm::value_ptr(baseParticleProps.finalColor));
 
-void ParticlesScene::sortParticles()
-{
-	std::sort(&particles[0], &particles[maxParticles]);
+    ImGui::SliderFloat("Initial Size", &baseParticleProps.initialSize, 0.0f, 5.0f, "%.2f");
+    ImGui::SliderFloat("Final Size", &baseParticleProps.finalSize, 0.0f, 5.0f, "%.2f");
+
+	ImGui::DragFloat("Life Time", &baseParticleProps.lifeTime, 0.05f, 0.0f, 10.0f, "%.2f");
+
+	ImGui::SeparatorText("Etc");
+
+	ImGui::ColorEdit3("Clear Color", glm::value_ptr(clearColor));
+
+    ImGui::End();
 }
