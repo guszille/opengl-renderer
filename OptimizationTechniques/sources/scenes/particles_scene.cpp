@@ -39,13 +39,13 @@ void ParticlesScene::update(float deltaTime)
 		float x = (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)) - 0.5f;
 		float y = (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)) + 0.5f;
 		float z = (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)) - 0.5f;
-		float r = (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)) - 0.5f;
+		float r = (2.0f * static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)) - 1.0f;
 
 		particleProps.position = baseParticleProps.position;
 		particleProps.linearVelocity = baseParticleProps.linearVelocity * glm::vec3(x, y, z);
 		particleProps.acceleration = baseParticleProps.acceleration;
 		particleProps.rotation = baseParticleProps.rotation;
-		particleProps.angularVelocity = baseParticleProps.angularVelocity * 2.0f * r;
+		particleProps.angularVelocity = baseParticleProps.angularVelocity * r;
 
 		particleProps.initialColor = baseParticleProps.initialColor;
 		particleProps.finalColor = baseParticleProps.finalColor;

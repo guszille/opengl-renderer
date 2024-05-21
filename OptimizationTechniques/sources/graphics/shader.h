@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -9,6 +10,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include "../utils/debug.h"
 
 class ShaderProgram
 {
@@ -30,6 +33,10 @@ public:
 
 private:
 	uint32_t ID;
+
+	std::map<const char*, int> uniformsLocations;
+
+	int getUniformLocation(const char* uniformName);
 
 	uint32_t createShader(const char* filepath, int shaderType);
 };

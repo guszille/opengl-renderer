@@ -51,17 +51,15 @@ public:
 
 private:
 	std::vector<Particle> particlePool;
-	int poolIndex = -1, activeParticles = 0;
+	int poolIndex = -1;
 
 	VAO* vao;
 	VBO* vbo;
 	IBO* ibo;
-	VBO* instancesMatricesVBO;
-	VBO* instancesColorsVBO;
+	VBO* instancesVBO;
 	ShaderProgram* particleRenderShader;
 
-	std::vector<glm::mat4> instancesMatricesBufferData;
-	std::vector<glm::vec4> instancesColorsBufferData;
+	std::vector<float> instancesBuffer;
 
 	void updatePoolIndex();
 	void sortPool();

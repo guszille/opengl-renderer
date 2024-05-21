@@ -1,7 +1,7 @@
 #include "particle_system.h"
 
 ParticleSystem::ParticleSystem()
-	: vao(nullptr), vbo(nullptr), ibo(nullptr), instancesMatricesVBO(nullptr), instancesColorsVBO(nullptr), particleRenderShader(nullptr)
+	: vao(nullptr), vbo(nullptr), ibo(nullptr), instancesVBO(nullptr), particleRenderShader(nullptr)
 {
 }
 
@@ -24,8 +24,7 @@ void ParticleSystem::setup(uint32_t poolSize, const char* vsFilepath, const char
 	vao = new VAO();
 	vbo = new VBO(vertices, sizeof(vertices));
 	ibo = new IBO(indices, sizeof(indices));
-	instancesMatricesVBO = new VBO(NULL, 16 * poolSize * sizeof(float), GL_STREAM_DRAW);
-	instancesColorsVBO = new VBO(NULL, 4 * poolSize * sizeof(float), GL_STREAM_DRAW);
+	instancesVBO = new VBO(NULL, 9 * poolSize * sizeof(float), GL_STREAM_DRAW);
 
 	vao->bind();
 	vbo->bind();
@@ -33,22 +32,20 @@ void ParticleSystem::setup(uint32_t poolSize, const char* vsFilepath, const char
 
 	vao->setVertexAttribute(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(0));
 
-	instancesMatricesVBO->bind();
+	instancesVBO->bind();
 
-	vao->setVertexAttribute(1, 4, GL_FLOAT, GL_FALSE, 4 * 4 * sizeof(float), (void*)(0), 1);
-	vao->setVertexAttribute(2, 4, GL_FLOAT, GL_FALSE, 4 * 4 * sizeof(float), (void*)(1 * 4 * sizeof(float)), 1);
-	vao->setVertexAttribute(3, 4, GL_FLOAT, GL_FALSE, 4 * 4 * sizeof(float), (void*)(2 * 4 * sizeof(float)), 1);
-	vao->setVertexAttribute(4, 4, GL_FLOAT, GL_FALSE, 4 * 4 * sizeof(float), (void*)(3 * 4 * sizeof(float)), 1);
-
-	instancesColorsVBO->bind();
-
-	vao->setVertexAttribute(5, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(0), 1);
+	vao->setVertexAttribute(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(0), 1);
+	vao->setVertexAttribute(2, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(3 * sizeof(float)), 1);
+	vao->setVertexAttribute(3, 4, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(5 * sizeof(float)), 1);
 
 	vao->unbind(); // Unbind VAO before another buffer.
 	vbo->unbind();
 	ibo->unbind();
+	instancesVBO->unbind();
 
 	particleRenderShader = new ShaderProgram(vsFilepath, fsFilepath);
+
+	instancesBuffer.resize(9 * poolSize);
 }
 
 void ParticleSystem::clean()
@@ -56,21 +53,18 @@ void ParticleSystem::clean()
 	particlePool.clear();
 	poolIndex = -1;
 
-	instancesMatricesBufferData.clear();
-	instancesColorsBufferData.clear();
+	instancesBuffer.clear();
 
 	vao->clean();
 	vbo->clean();
 	ibo->clean();
-	instancesMatricesVBO->clean();
-	instancesColorsVBO->clean();
+	instancesVBO->clean();
 	particleRenderShader->clean();
 
 	delete vao;
 	delete vbo;
 	delete ibo;
-	delete instancesMatricesVBO;
-	delete instancesColorsVBO;
+	delete instancesVBO;
 	delete particleRenderShader;
 }
 
@@ -94,7 +88,8 @@ void ParticleSystem::update(float deltaTime)
 
 void ParticleSystem::render(const Camera& camera, float deltaTime)
 {
-	uint32_t activeParticles = 0;
+	bool hasNoActiveParticles = true;
+	int activeParticles = 0;
 
 	for (Particle& particle : particlePool)
 	{
@@ -105,18 +100,15 @@ void ParticleSystem::render(const Camera& camera, float deltaTime)
 
 		particle.cameraDistance = glm::length(particle.position - camera.getPosition());
 
-		activeParticles += 1;
+		hasNoActiveParticles = false;
 	}
 
-	if (activeParticles == 0)
+	if (hasNoActiveParticles)
 	{
 		return;
 	}
 
 	sortPool();
-
-	instancesMatricesBufferData.clear();
-	instancesColorsBufferData.clear();
 
 	for (Particle& particle : particlePool)
 	{
@@ -126,27 +118,32 @@ void ParticleSystem::render(const Camera& camera, float deltaTime)
 		}
 
 		float lifeFactor = particle.lifeRemaining / particle.lifeTime;
-		float size = glm::lerp(particle.finalSize, particle.initialSize, lifeFactor);
+		float scale = glm::lerp(particle.finalSize, particle.initialSize, lifeFactor);
 		glm::vec4 color = glm::lerp(particle.finalColor, particle.initialColor, lifeFactor);
-		glm::mat4 modelMatrix = glm::inverse(glm::lookAt(camera.getPosition(), particle.position, glm::vec3(0.0f, 1.0f, 0.0f)));
 
-		// Am I violating the correct transformations order here?
-		modelMatrix = glm::translate(modelMatrix, particle.position);
-		modelMatrix = glm::rotate(modelMatrix, glm::radians(particle.rotation), camera.getDirection());
-		modelMatrix = glm::scale(modelMatrix, glm::vec3(size));
+		instancesBuffer[9 * activeParticles + 0] = particle.position.x;
+		instancesBuffer[9 * activeParticles + 1] = particle.position.y;
+		instancesBuffer[9 * activeParticles + 2] = particle.position.z;
 
-		instancesMatricesBufferData.push_back(modelMatrix);
-		instancesColorsBufferData.push_back(color);
+		instancesBuffer[9 * activeParticles + 3] = particle.rotation;
+		instancesBuffer[9 * activeParticles + 4] = scale;
+
+		instancesBuffer[9 * activeParticles + 5] = color.r;
+		instancesBuffer[9 * activeParticles + 6] = color.g;
+		instancesBuffer[9 * activeParticles + 7] = color.b;
+		instancesBuffer[9 * activeParticles + 8] = color.a;
+
+		activeParticles += 1;
 	}
 
-	instancesMatricesVBO->update(&instancesMatricesBufferData[0], 16 * activeParticles * sizeof(float));
-	instancesColorsVBO->update(&instancesColorsBufferData[0], 4 * activeParticles * sizeof(float));
+	instancesVBO->update(&instancesBuffer[0], 9 * activeParticles * sizeof(float));
 
 	vao->bind();
 	particleRenderShader->bind();
 
 	particleRenderShader->setUniformMatrix4fv("uProjectionMatrix", camera.getProjectionMatrix());
 	particleRenderShader->setUniformMatrix4fv("uViewMatrix", camera.getViewMatrix());
+	particleRenderShader->setUniform3f("uCameraPos", camera.getPosition());
 
 	glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, activeParticles);
 
