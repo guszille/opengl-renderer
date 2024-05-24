@@ -144,6 +144,7 @@ void ParticleSystem::render(const Camera& camera, float deltaTime)
 	particleRenderShader->setUniformMatrix4fv("uProjectionMatrix", camera.getProjectionMatrix());
 	particleRenderShader->setUniformMatrix4fv("uViewMatrix", camera.getViewMatrix());
 	particleRenderShader->setUniform3f("uCameraPos", camera.getPosition());
+	particleRenderShader->setUniform1i("uBuillboarding", 1);
 
 	glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, activeParticles);
 

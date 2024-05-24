@@ -10,9 +10,9 @@ out vec4 oFragColor;
 void main()
 {
     oFragColor = texture(uTexture, ioTexCoords);
-
+    
     if (oFragColor.a <= uAlphaThreshold)
-	{
-		discard;
-	}
+    {
+        discard;
+    }
 }

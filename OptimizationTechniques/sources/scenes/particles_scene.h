@@ -25,5 +25,6 @@ private:
 
 	ParticleProps baseParticleProps;
 
+	bool billboardParticles;
 	glm::vec3 clearColor;
 };
