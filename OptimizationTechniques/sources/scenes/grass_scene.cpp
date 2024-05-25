@@ -560,69 +560,58 @@ void GrassScene::processGUI()
 	if (currGrassType == GrassType::TEXTURIZED)
 	{
 		ImGui::SeparatorText("Wind Properties");
-		{
-			ImGui::DragFloat3("Direction", &windDirection[0], 0.25f, -1.0f, 1.0f, "%.2f");
-
-			ImGui::SliderFloat("Intensity", &windIntensity, 0.005f, 2.000f, "%.3f");
-		}
+		
+		ImGui::DragFloat3("Direction", &windDirection[0], 0.25f, -1.0f, 1.0f, "%.2f");
+		ImGui::SliderFloat("Intensity", &windIntensity, 0.005f, 2.000f, "%.3f");
 	}
 	else if (currGrassType == GrassType::MONOCHROMATIC)
 	{
 		ImGui::SeparatorText("Light");
-		{
-			ImGui::ColorEdit3("Ambient Comp.", &lightAmbientComp[0]);
-			ImGui::ColorEdit3("Diffuse Comp.", &lightDiffuseComp[0]);
-			ImGui::ColorEdit3("Specular Comp.", &lightSpecularComp[0]);
-			
-			ImGui::Checkbox("Render Shadow Map", &renderShadowMap);
-		}
+
+		ImGui::ColorEdit3("Ambient Comp.", &lightAmbientComp[0]);
+		ImGui::ColorEdit3("Diffuse Comp.", &lightDiffuseComp[0]);
+		ImGui::ColorEdit3("Specular Comp.", &lightSpecularComp[0]);
+		ImGui::Checkbox("Render Shadow Map", &renderShadowMap);
 
 		ImGui::SeparatorText("Grass");
-		{
-			ImGui::ColorEdit3("Mat. Diffuse Comp.", &grassDiffuseComp[0]);
-			ImGui::ColorEdit3("Mat. Specular Comp.", &grassSpecularComp[0]);
 
-			ImGui::SliderFloat("Mat. Shininess", &grassSpecularShininess, -8.0f, 96.0f);
-		}
+		ImGui::ColorEdit3("Mat. Diffuse Comp.", &grassDiffuseComp[0]);
+		ImGui::ColorEdit3("Mat. Specular Comp.", &grassSpecularComp[0]);
+		ImGui::SliderFloat("Mat. Shininess", &grassSpecularShininess, -8.0f, 96.0f);
 
 		ImGui::SeparatorText("Wind Properties");
+
+		const char* comboItems[] = { "Simple", "Noised (Simplex Noise)" };
+		static int comboSelectedItem = int(windEffect);
+		ImGui::Combo("Effect", &comboSelectedItem, comboItems, 2);
 		{
-			const char* comboItems[] = { "Simple", "Noised (Simplex Noise)" };
-			static int comboSelectedItem = int(windEffect);
-
-			ImGui::Combo("Effect", &comboSelectedItem, comboItems, 2);
+			if (comboSelectedItem != int(windEffect))
 			{
-				if (comboSelectedItem != int(windEffect))
+				switch (comboSelectedItem)
 				{
-					switch (comboSelectedItem)
-					{
-					case 0:
-						windEffect = WindEffect::SIMPLE;
-						break;
+				case 0:
+					windEffect = WindEffect::SIMPLE;
+					break;
 
-					case 1:
-						windEffect = WindEffect::NOISED;
-						break;
+				case 1:
+					windEffect = WindEffect::NOISED;
+					break;
 
-					default:
-						break;
-					}
+				default:
+					break;
 				}
 			}
-
-			ImGui::DragFloat3("Direction", &windDirection[0], 0.25f, -1.0f, 1.0f, "%.2f");
-
-			ImGui::SliderFloat("Intensity", &windIntensity, 0.005f, 2.000f, "%.3f");
-			ImGui::SliderFloat("Noise Scale", &noiseScale, 0.005f, 2.000f, "%.3f");
-			ImGui::SliderFloat("Noise Strength", &noiseStrength, 0.005f, 2.000f, "%.3f");
-			
-			ImGui::Checkbox("Render Noise Texture", &renderNoiseTex);
 		}
+
+		ImGui::DragFloat3("Direction", &windDirection[0], 0.25f, -1.0f, 1.0f, "%.2f");
+		ImGui::SliderFloat("Intensity", &windIntensity, 0.005f, 2.000f, "%.3f");
+		ImGui::SliderFloat("Noise Scale", &noiseScale, 0.005f, 2.000f, "%.3f");
+		ImGui::SliderFloat("Noise Strength", &noiseStrength, 0.005f, 2.000f, "%.3f");
+		ImGui::Checkbox("Render Noise Texture", &renderNoiseTex);
 
 		ImGui::SeparatorText("Etc");
-		{
-			ImGui::ColorEdit3("Clear Color", &clearColor[0]);
-		}
+		
+		ImGui::ColorEdit3("Clear Color", &clearColor[0]);
 	}
 
 	ImGui::End();
