@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 
 #include "../graphics/shader.h"
-#include "../graphics/model.h"
+#include "../graphics/basic_model.h"
 #include "../scene.h"
 
 class InstancingScene : public Scene
@@ -21,7 +21,7 @@ public:
 
 private:
 	ShaderProgram* instancingModelRenderShader;
-	Model* marsModel;
+	BasicModel* marsModel;
 
 	glm::mat4* modelMatrices;
 	int instances;

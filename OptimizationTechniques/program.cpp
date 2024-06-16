@@ -92,7 +92,7 @@ int main()
 
 	glfwMakeContextCurrent(window);
 
-	glfwSwapInterval(0);
+	glfwSwapInterval(1);
 
 	glfwSetInputMode(window, GLFW_CURSOR, CURSOR_MODE);
 

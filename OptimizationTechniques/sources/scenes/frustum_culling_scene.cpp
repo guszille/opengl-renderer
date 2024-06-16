@@ -8,7 +8,7 @@ FrustumCullingScene::FrustumCullingScene()
 void FrustumCullingScene::setup()
 {
 	modelRenderShader = new ShaderProgram("sources/shaders/1_render_model_vs.glsl", "sources/shaders/1_render_model_fs.glsl");
-	marsModel = new Model("resources/models/mars/mars.obj");
+	marsModel = new BasicModel("resources/models/mars/mars.obj");
 
 	// Generating scene entities.
 	for (int x = 0; x < 20; ++x)

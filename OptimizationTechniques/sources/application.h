@@ -16,6 +16,7 @@
 #include "scenes/frustum_culling_scene.h"
 #include "scenes/grass_scene.h"
 #include "scenes/particles_scene.h"
+#include "scenes/skeletal_animation_scene.h"
 
 class Application
 {

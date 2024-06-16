@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "../graphics/shader.h"
-#include "../graphics/model.h"
+#include "../graphics/basic_model.h"
 #include "../scene.h"
 
 class FrustumCullingScene : public Scene
@@ -21,5 +21,5 @@ public:
 
 private:
 	ShaderProgram* modelRenderShader;
-	Model* marsModel;
+	BasicModel* marsModel;
 };

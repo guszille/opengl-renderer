@@ -6,7 +6,7 @@
 #include <glm/glm.hpp>
 
 #include "graphics/shader.h"
-#include "graphics/model.h"
+#include "graphics/basic_model.h"
 #include "camera.h"
 
 class Transform
@@ -194,13 +194,13 @@ struct Sphere : public BoundingVolume
 		: BoundingVolume{}, center(center), radius(radius)
 	{}
 
-	Sphere(Model* model)
+	Sphere(BasicModel* model)
 		: BoundingVolume{}
 	{
 		glm::vec3 minAABB = glm::vec3(std::numeric_limits<float>::max());
 		glm::vec3 maxAABB = glm::vec3(std::numeric_limits<float>::min());
 
-		for (const MVertex& vertex : model->getVertices())
+		for (const BMVertex& vertex : model->getVertices())
 		{
 			minAABB.x = std::min(minAABB.x, vertex.position.x);
 			minAABB.y = std::min(minAABB.y, vertex.position.y);
@@ -257,9 +257,9 @@ public:
 	Entity* parent = nullptr;
 
 	std::unique_ptr<Sphere> boundingVolume;
-	Model* model = nullptr;
+	BasicModel* model = nullptr;
 
-	Entity(Model* model);
+	Entity(BasicModel* model);
 
 	template<typename... T>
 	void addChild(const T&... args)

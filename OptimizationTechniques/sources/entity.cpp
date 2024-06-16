@@ -1,6 +1,6 @@
 #include "entity.h"
 
-Entity::Entity(Model* model)
+Entity::Entity(BasicModel* model)
 	: model(model)
 {
 	boundingVolume = std::make_unique<Sphere>(model);

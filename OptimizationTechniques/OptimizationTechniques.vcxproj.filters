@@ -21,7 +21,7 @@
     <ClCompile Include="sources\utils\debug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sources\graphics\model.cpp">
+    <ClCompile Include="sources\graphics\basic_model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sources\camera.cpp">
@@ -93,12 +93,21 @@
     <ClCompile Include="sources\systems\particle_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sources\graphics\assimp_model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\scenes\skeletal_animation_scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\graphics\model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\utils\debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sources\graphics\model.h">
+    <ClInclude Include="sources\graphics\basic_model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sources\camera.h">
@@ -144,6 +153,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sources\systems\particle_system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\graphics\assimp_model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\scenes\skeletal_animation_scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\graphics\model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
