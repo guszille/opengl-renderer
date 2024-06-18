@@ -24,11 +24,11 @@ void SkeletalAnimationScene::update(float deltaTime)
 
 void SkeletalAnimationScene::render(const Camera& camera, float deltaTime)
 {
-	glClearColor(0.25f, 0.5f, 0.75f, 1.0f);
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glm::mat4 modelMatrix(1.0f);
-	modelMatrix = glm::scale(modelMatrix, glm::vec3(0.01f));
+	modelMatrix = glm::scale(modelMatrix, glm::vec3(0.0001f));
 
 	renderModelShader->bind();
 
@@ -38,9 +38,9 @@ void SkeletalAnimationScene::render(const Camera& camera, float deltaTime)
 
 	const std::vector<glm::mat4>& transforms = model->animator.getBonesMatrices();
 
-	for (int i = 0; i < transforms.size(); i++)
+	for (uint32_t index = 0; index < transforms.size(); index++)
 	{
-		renderModelShader->setUniformMatrix4fv(("uBonesMatrices[" + std::to_string(i) + "]").c_str(), transforms[i]);
+		renderModelShader->setUniformMatrix4fv(("uBonesMatrices[" + std::to_string(index) + "]").c_str(), transforms[index]);
 	}
 
 	model->render(renderModelShader);

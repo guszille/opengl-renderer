@@ -34,7 +34,7 @@ public:
 private:
 	uint32_t ID;
 
-	std::map<const char*, int> uniformsLocations;
+	std::map<std::string, int> uniformsLocations;
 
 	int getUniformLocation(const char* uniformName);
 

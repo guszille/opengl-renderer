@@ -25,13 +25,13 @@
 #define MAX_NUM_BONES 100
 #define MAX_NUM_BONES_PER_VERTEX 4
 
-struct BoneNode
+struct ModelNode
 {
     std::string name;
 
     glm::mat4 transformation;
 
-    std::vector<BoneNode> children;
+    std::vector<ModelNode> children;
 };
 
 struct Bone
@@ -185,6 +185,35 @@ struct MeshVertex
 
     int boneIDs[MAX_NUM_BONES_PER_VERTEX] = { -1, -1, -1, -1 };
     float weights[MAX_NUM_BONES_PER_VERTEX] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+    void addBoneData(uint32_t boneID, float weight)
+    {
+        if (weight == 0.0f) // Avoid zero weight.
+        {
+            return;
+        }
+
+        for (uint32_t i = 0; i < MAX_NUM_BONES_PER_VERTEX; i++) // Avoid duplicated bones.
+        {
+            if (boneIDs[i] == boneID)
+            {
+                return;
+            }
+        }
+
+        for (uint32_t i = 0; i < MAX_NUM_BONES_PER_VERTEX; i++)
+        {
+            if (boneIDs[i] == -1)
+            {
+                boneIDs[i] = boneID;
+                weights[i] = weight;
+
+                break;
+            }
+        }
+
+        // assert(0); // Should never get here, more bones than we have space for.
+    }
 };
 
 struct MeshTexture
@@ -226,9 +255,10 @@ public:
 
     const std::vector<glm::mat4>& getBonesMatrices() { return bonesMatrices; }
 
-    void processBoneNodes(const aiScene* scene);
+    void processModelNodes(const aiScene* scene);
     void processAnimations(const aiScene* scene);
     void processBones(aiMesh* mesh, std::vector<MeshVertex>& vertices);
+    void processMissingBones(const aiScene* scene);
 
     void update(float deltaTime);
     void clean();
@@ -239,17 +269,16 @@ public:
 private:
     uint32_t currAnimation;
 
-    BoneNode rootBoneNode;
+    ModelNode rootModelNode;
+    glm::mat4 globalTransformation;
 
     std::map<std::string, Bone> bones;
     std::vector<glm::mat4> bonesMatrices;
 
     std::vector<Animation> animations;
 
-    void addMeshVertexBoneData(MeshVertex& meshVertex, uint32_t boneID, float weight);
-
-    void readBoneNodeHierarchy(const aiNode* source, BoneNode& destination);
-    void calcBoneTransformation(BoneNode& boneNode, const glm::mat4& parentTransformation);
+    void readModelNodeHierarchy(const aiNode* source, ModelNode& destination);
+    void calcBoneTransformation(ModelNode& boneNode, const glm::mat4& parentTransformation);
 };
 
 class Mesh

@@ -63,7 +63,7 @@ void Animation::clean()
 }
 
 Animator::Animator()
-	: currAnimation(0)
+	: currAnimation(0), globalTransformation(1.0f)
 {
 	bonesMatrices.reserve(MAX_NUM_BONES);
 
@@ -73,9 +73,11 @@ Animator::Animator()
 	}
 }
 
-void Animator::processBoneNodes(const aiScene* scene)
+void Animator::processModelNodes(const aiScene* scene)
 {
-	readBoneNodeHierarchy(scene->mRootNode, rootBoneNode);
+	globalTransformation = AssimpGLMHelpers::getGLMMat4(scene->mRootNode->mTransformation.Inverse());
+
+	readModelNodeHierarchy(scene->mRootNode, rootModelNode);
 }
 
 void Animator::processAnimations(const aiScene* scene)
@@ -110,11 +112,30 @@ void Animator::processBones(aiMesh* mesh, std::vector<MeshVertex>& vertices)
 
 		for (uint32_t j = 0; j < mesh->mBones[i]->mNumWeights; j++)
 		{
-			uint32_t vertexID = boneWeights[j].mVertexId;
+			assert(vertices.size() >= boneWeights[j].mVertexId);
 
-			assert(vertexID <= vertices.size());
+			vertices[boneWeights[j].mVertexId].addBoneData(boneID, boneWeights[j].mWeight);
+		}
+	}
+}
 
-			addMeshVertexBoneData(vertices[vertexID], boneID, boneWeights[j].mWeight);
+void Animator::processMissingBones(const aiScene* scene)
+{
+	for (uint32_t i = 0; i < scene->mNumAnimations; i++)
+	{
+		for (uint32_t j = 0; j < scene->mAnimations[i]->mNumChannels; j++)
+		{
+			std::string boneName = scene->mAnimations[i]->mChannels[j]->mNodeName.C_Str();
+
+			if (bones.find(boneName) == bones.end())
+			{
+				Bone bone;
+
+				bone.ID = bones.size();
+				bone.offsetMatrix = glm::mat4(1.0f);
+
+				bones[boneName] = bone;
+			}
 		}
 	}
 }
@@ -125,7 +146,7 @@ void Animator::update(float deltaTime)
 	{
 		animations[currAnimation].update(deltaTime);
 
-		calcBoneTransformation(rootBoneNode, glm::mat4(1.0f));
+		calcBoneTransformation(rootModelNode, glm::mat4(1.0f));
 	}
 }
 
@@ -167,57 +188,41 @@ void Animator::execAnimation(const std::string name)
 	}
 }
 
-void Animator::addMeshVertexBoneData(MeshVertex& meshVertex, uint32_t boneID, float weight)
-{
-	for (uint32_t i = 0; i < MAX_NUM_BONES_PER_VERTEX; i++)
-	{
-		if (meshVertex.boneIDs[i] == -1)
-		{
-			meshVertex.boneIDs[i] = boneID;
-			meshVertex.weights[i] = weight;
-
-			break;
-		}
-	}
-
-	// assert(0); // Should never get here, more bones than we have space for.
-}
-
-void Animator::readBoneNodeHierarchy(const aiNode* source, BoneNode& destination)
+void Animator::readModelNodeHierarchy(const aiNode* source, ModelNode& destination)
 {
 	destination.name = source->mName.data;
 	destination.transformation = AssimpGLMHelpers::getGLMMat4(source->mTransformation);
 
 	for (uint32_t i = 0; i < source->mNumChildren; i++)
 	{
-		BoneNode data;
+		ModelNode data;
 
-		readBoneNodeHierarchy(source->mChildren[i], data);
+		readModelNodeHierarchy(source->mChildren[i], data);
 
 		destination.children.push_back(data);
 	}
 }
 
-void Animator::calcBoneTransformation(BoneNode& boneNode, const glm::mat4& parentTransformation)
+void Animator::calcBoneTransformation(ModelNode& modelNode, const glm::mat4& parentTransformation)
 {
 	glm::mat4 currTransformation = parentTransformation;
 	std::map<std::string, AnimNode>& animNodes = animations[currAnimation].getAnimNodes();
 
-	if (animNodes.find(boneNode.name) != animNodes.end())
+	if (animNodes.find(modelNode.name) != animNodes.end())
 	{
-		currTransformation = currTransformation * animNodes[boneNode.name].transformation;
+		currTransformation = currTransformation * animNodes[modelNode.name].transformation;
 	}
 	else
 	{
-		currTransformation = currTransformation * boneNode.transformation;
+		currTransformation = currTransformation * modelNode.transformation;
 	}
 
-	if (bones.find(boneNode.name) != bones.end())
+	if (bones.find(modelNode.name) != bones.end())
 	{
-		bonesMatrices[bones[boneNode.name].ID] = currTransformation * bones[boneNode.name].offsetMatrix;
+		bonesMatrices[bones[modelNode.name].ID] = currTransformation * bones[modelNode.name].offsetMatrix; // FIXME: should I multiply by the scene "globalTransformation"?
 	}
 
-	for (BoneNode& childNode : boneNode.children)
+	for (ModelNode& childNode : modelNode.children)
 	{
 		calcBoneTransformation(childNode, currTransformation);
 	}
@@ -289,8 +294,7 @@ void Mesh::load()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(MeshVertex), (void*)(0));
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(MeshVertex), (void*)(offsetof(MeshVertex, normal)));
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(MeshVertex), (void*)(offsetof(MeshVertex, uvs)));
-	//glVertexAttribIPointer(3, 4, GL_INT, sizeof(MeshVertex), (void*)(offsetof(MeshVertex, boneIDs)));
-	glVertexAttribPointer(3, 4, GL_INT, GL_FALSE, sizeof(MeshVertex), (void*)(offsetof(MeshVertex, boneIDs)));
+	glVertexAttribIPointer(3, 4, GL_INT, sizeof(MeshVertex), (void*)(offsetof(MeshVertex, boneIDs))); // glVertexAttribPointer(3, 4, GL_INT, GL_FALSE, sizeof(MeshVertex), (void*)(offsetof(MeshVertex, boneIDs)));
 	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(MeshVertex), (void*)(offsetof(MeshVertex, weights)));
 
 	glEnableVertexAttribArray(0);
@@ -347,10 +351,12 @@ void Model::load(const char* filepath, uint32_t flags)
 
 	directory = fp.substr(0, fp.find_last_of('/'));
 
-	animator.processBoneNodes(scene);
+	animator.processModelNodes(scene);
 	animator.processAnimations(scene);
 
 	processNode(scene->mRootNode, scene);
+
+	animator.processMissingBones(scene); // FIXME: really necessary?
 }
 
 uint32_t Model::loadTexture(const char* filepath)

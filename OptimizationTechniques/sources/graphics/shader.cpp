@@ -136,7 +136,7 @@ void ShaderProgram::clean()
 
 int ShaderProgram::getUniformLocation(const char* uniformName)
 {
-	std::map<const char*, int>::iterator it = uniformsLocations.find(uniformName);
+	std::map<std::string, int>::iterator it = uniformsLocations.find(uniformName);
 
 	if (it != uniformsLocations.end())
 	{

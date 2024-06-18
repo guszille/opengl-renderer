@@ -106,8 +106,9 @@ void Camera::processRotation(float xOffset, float yOffset, float deltaTime)
 {
 	glm::vec3 newDirection(0.0f);
 
-	yaw += (xOffset * sensitivity * deltaTime);
-	pitch += (yOffset * sensitivity * deltaTime);
+	// FIXME: I don't know how to use "deltaTime" on rotation. Removing it until a better solution comes up.
+	yaw += (xOffset * sensitivity);
+	pitch += (yOffset * sensitivity);
 
 	pitch = std::min(std::max(pitch, -89.0f), 89.0f);
 

@@ -93,9 +93,6 @@
     <ClCompile Include="sources\systems\particle_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sources\graphics\assimp_model.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sources\scenes\skeletal_animation_scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -153,9 +150,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sources\systems\particle_system.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sources\graphics\assimp_model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sources\scenes\skeletal_animation_scene.h">

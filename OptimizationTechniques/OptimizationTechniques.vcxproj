@@ -173,7 +173,6 @@
     <ClCompile Include="external\includes\imgui\imgui_widgets.cpp" />
     <ClCompile Include="program.cpp" />
     <ClCompile Include="sources\application.cpp" />
-    <ClCompile Include="sources\graphics\assimp_model.cpp" />
     <ClCompile Include="sources\graphics\buffer.cpp" />
     <ClCompile Include="sources\graphics\depthmap.cpp" />
     <ClCompile Include="sources\graphics\basic_model.cpp" />
@@ -195,7 +194,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\application.h" />
-    <ClInclude Include="sources\graphics\assimp_model.h" />
     <ClInclude Include="sources\graphics\buffer.h" />
     <ClInclude Include="sources\graphics\depthmap.h" />
     <ClInclude Include="sources\graphics\basic_model.h" />

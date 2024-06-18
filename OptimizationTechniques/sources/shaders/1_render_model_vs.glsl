@@ -19,34 +19,7 @@ out vec2 ioTexCoords;
 
 void main()
 {
-    /*
-    vec4 finalPos = vec4(0.0);
-
-    for(int i = 0; i < MAX_NUM_BONES_PER_VERTEX; i++)
-    {
-        if(aBoneIDs[i] == -1 || aWeights[i] == 0.0)
-        {
-            continue;
-        }
-
-        if(aBoneIDs[i] >= MAX_NUM_BONES)
-        {
-            finalPos = vec4(aPos, 1.0);
-
-            break;
-        }
-
-        vec4 localPos = uBonesMatrices[aBoneIDs[i]] * vec4(aPos, 1.0);
-
-        finalPos += localPos * aWeights[i];
-    }
-
-    gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * finalPos;
-
-    ioTexCoords = aTexCoords;
-    */
-
-    mat4 boneTransform = mat4(0.0);
+    vec4 bPos = vec4(0.0);
 
     for(int i = 0; i < MAX_NUM_BONES_PER_VERTEX; i++)
     {
@@ -57,15 +30,15 @@ void main()
 
         if(aBoneIDs[i] >= MAX_NUM_BONES)
         {
-            boneTransform = mat4(1.0);
+            bPos = vec4(aPos, 1.0);
 
             break;
         }
 
-        boneTransform += uBonesMatrices[aBoneIDs[i]] * aWeights[i];
+        vec4 localPos = uBonesMatrices[aBoneIDs[i]] * vec4(aPos, 1.0);
+
+        bPos += localPos * aWeights[i];
     }
-    
-    vec4 bPos = boneTransform * vec4(aPos, 1.0);
 
     gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * bPos;
 
