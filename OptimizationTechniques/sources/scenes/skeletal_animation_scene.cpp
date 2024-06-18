@@ -24,7 +24,7 @@ void SkeletalAnimationScene::update(float deltaTime)
 
 void SkeletalAnimationScene::render(const Camera& camera, float deltaTime)
 {
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glm::mat4 modelMatrix(1.0f);

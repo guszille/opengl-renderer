@@ -8,6 +8,7 @@ Custom OpenGL renderer, developed to explore some graphics optimization techniqu
 - Scene 2: Applying Instancing to render multiple objects in the scene;
 - Scene 3: Applying Instancing to render multiple grass leaves and simulating wind animation on them;
 - Scene 4: Applying Instancing to render multiple particles in the scene (customizable).
+- Scene 5: Applying Skeletal Animation over a model loaded from the disk.
 
 ## Gallery
 
@@ -19,6 +20,10 @@ Custom OpenGL renderer, developed to explore some graphics optimization techniqu
 
 <p align="center">Particles</p>
 
-![Grass](./Media/particles_fire_anim_1.gif)
+![Fire Particles](./Media/particles_fire_anim_1.gif)
 
-![Grass](./Media/particles_fire_anim_2.gif)
+![Fire Particles](./Media/particles_fire_anim_2.gif)
+
+<p align="center">Skeletal Animation</p>
+
+![Animation](./Media/skeletal_anim.gif)
