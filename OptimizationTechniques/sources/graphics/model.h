@@ -253,7 +253,9 @@ class Animator
 public:
     Animator();
 
+    uint32_t getCurrAnimation() { return currAnimation; }
     const std::vector<glm::mat4>& getBonesMatrices() { return bonesMatrices; }
+    const std::vector<Animation>& getAnimations() { return animations; }
 
     void processModelNodes(const aiScene* scene);
     void processAnimations(const aiScene* scene);

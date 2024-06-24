@@ -15,6 +15,11 @@ void SkeletalAnimationScene::setup()
 
 void SkeletalAnimationScene::clean()
 {
+	renderModelShader->clean();
+	model->clean();
+
+	delete renderModelShader;
+	delete model;
 }
 
 void SkeletalAnimationScene::update(float deltaTime)
@@ -50,4 +55,28 @@ void SkeletalAnimationScene::render(const Camera& camera, float deltaTime)
 
 void SkeletalAnimationScene::processGUI()
 {
+	bool dialogOpen = true;
+	ImGui::Begin("Skeletal Animation Dialog", &dialogOpen, ImGuiWindowFlags_MenuBar);
+
+	ImGui::SeparatorText("Model");
+
+	const std::vector<Animation>& animations = model->animator.getAnimations();
+
+	const char** comboItems = new const char*[animations.size()];
+	static int comboSelectedItem = model->animator.getCurrAnimation();
+
+	for (uint32_t i = 0; i < animations.size(); i++)
+	{
+		comboItems[i] = animations[i].getName().c_str();
+	}
+
+	ImGui::Combo("Animations", &comboSelectedItem, comboItems, animations.size());
+	{
+		if (comboSelectedItem != model->animator.getCurrAnimation())
+		{
+			model->animator.execAnimation(comboSelectedItem);
+		}
+	}
+
+	ImGui::End();
 }

@@ -59,7 +59,7 @@ void Animation::update(float deltaTime)
 
 void Animation::clean()
 {
-	// TODO.
+	animNodes.clear();
 }
 
 Animator::Animator()
@@ -152,7 +152,13 @@ void Animator::update(float deltaTime)
 
 void Animator::clean()
 {
-	// TODO.
+	for (uint32_t i = 0; i < animations.size(); i++)
+	{
+		animations[i].clean();
+	}
+
+	bones.clear();
+	animations.clear();
 }
 
 void Animator::execAnimation(uint32_t number)
@@ -275,7 +281,18 @@ void Mesh::render(ShaderProgram* shader)
 
 void Mesh::clean()
 {
-	// TODO.
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &IBO);
+
+	for (const MeshTexture& texture : textures)
+	{
+		glDeleteTextures(1, &texture.ID);
+	}
+
+	vertices.clear();
+	indices.clear();
+	textures.clear();
 }
 
 void Mesh::load()
@@ -324,7 +341,14 @@ void Model::render(ShaderProgram* shader)
 
 void Model::clean()
 {
-	// TODO.
+	for (Mesh& mesh : meshes)
+	{
+		mesh.clean();
+	}
+
+	animator.clean();
+
+	loadedTextures.clear();
 }
 
 void Model::load(const char* filepath, uint32_t flags)
