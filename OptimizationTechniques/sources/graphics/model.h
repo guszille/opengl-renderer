@@ -218,7 +218,7 @@ struct MeshVertex
 
 struct MeshTexture
 {
-    enum class Type { DIFFUSE, SPECULAR };
+    enum class Type { DIFFUSE, SPECULAR, EMISSION, NORMAL };
 
     uint32_t ID;
     Type type;
@@ -317,7 +317,7 @@ private:
     std::string directory;
 
     void load(const char* filepath, uint32_t flags);
-    uint32_t loadTexture(const char* filepath);
+    uint32_t loadTexture(const char* filepath, bool gammaCorrection = false);
 
     std::vector<MeshTexture> loadMaterialTextures(aiMaterial* material, aiTextureType type);
 

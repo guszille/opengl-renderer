@@ -246,14 +246,22 @@ void Mesh::render(ShaderProgram* shader)
 
 	for (const MeshTexture& texture : textures)
 	{
-		if (texture.type == MeshTexture::Type::DIFFUSE)
+		switch (texture.type)
 		{
+		case MeshTexture::Type::DIFFUSE:
 			shader->setUniform1i("uMaterial.diffuseMap", unit);
-		}
-
-		if (texture.type == MeshTexture::Type::SPECULAR)
-		{
-			// shader->setUniform1i("uMaterial.specularMap", unit);
+			break;
+		case MeshTexture::Type::SPECULAR:
+			shader->setUniform1i("uMaterial.specularMap", unit);
+			break;
+		case MeshTexture::Type::EMISSION:
+			shader->setUniform1i("uMaterial.emissionMap", unit);
+			break;
+		case MeshTexture::Type::NORMAL:
+			shader->setUniform1i("uMaterial.normalMap", unit);
+			break;
+		default:
+			break;
 		}
 
 		// Activating and binding texture.
@@ -373,6 +381,8 @@ void Model::load(const char* filepath, uint32_t flags)
 		return;
 	}
 
+	std::cout << "[LOG] MODEL: Loading model \"" << fp << "\"." << std::endl;
+
 	directory = fp.substr(0, fp.find_last_of('/'));
 
 	animator.processModelNodes(scene);
@@ -383,12 +393,12 @@ void Model::load(const char* filepath, uint32_t flags)
 	animator.processMissingBones(scene); // FIXME: really necessary?
 }
 
-uint32_t Model::loadTexture(const char* filepath)
+uint32_t Model::loadTexture(const char* filepath, bool gammaCorrection)
 {
 	stbi_set_flip_vertically_on_load(true);
 
 	uint32_t ID;
-	int width, height, colorChannels, format = GL_RED;
+	int width, height, colorChannels, internalFormat = GL_RED, format = GL_RED;
 	stbi_uc* data = stbi_load(filepath, &width, &height, &colorChannels, 0);
 
 	glGenTextures(1, &ID);
@@ -405,6 +415,7 @@ uint32_t Model::loadTexture(const char* filepath)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
+		internalFormat = gammaCorrection ? GL_SRGB : GL_RGB;
 		format = GL_RGB;
 
 		break;
@@ -413,6 +424,7 @@ uint32_t Model::loadTexture(const char* filepath)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
+		internalFormat = gammaCorrection ? GL_SRGB_ALPHA : GL_RGBA;
 		format = GL_RGBA;
 
 		break;
@@ -426,7 +438,7 @@ uint32_t Model::loadTexture(const char* filepath)
 
 	if (data)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	else
@@ -471,15 +483,28 @@ std::vector<MeshTexture> Model::loadMaterialTextures(aiMaterial* material, aiTex
 			texture.ID = loadTexture((directory + "/" + filepath).c_str());
 			texture.filepath = filepath;
 
-			if (type == aiTextureType_DIFFUSE)
+			switch (type)
 			{
+			case aiTextureType_DIFFUSE:
 				texture.type = MeshTexture::Type::DIFFUSE;
+				break;
+			case aiTextureType_SPECULAR:
+				texture.type = MeshTexture::Type::SPECULAR;
+				break;
+			case aiTextureType_AMBIENT:
+				// In most cases, same as DIFFUSE texture.
+				break;
+			case aiTextureType_EMISSIVE:
+				texture.type = MeshTexture::Type::EMISSION;
+				break;
+			case aiTextureType_HEIGHT:
+				texture.type = MeshTexture::Type::NORMAL;
+				break;
+			default:
+				break;
 			}
 
-			if (type == aiTextureType_SPECULAR)
-			{
-				texture.type = MeshTexture::Type::SPECULAR;
-			}
+			std::cout << '\t' << "[LOG] MODEL: Loading material texture \"" << texture.filepath << "\"." << std::endl;
 
 			textures.push_back(texture);
 		}
@@ -558,6 +583,12 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 
 		std::vector<MeshTexture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR);
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+
+		std::vector<MeshTexture> emissionMaps = loadMaterialTextures(material, aiTextureType_EMISSIVE);
+		textures.insert(textures.end(), emissionMaps.begin(), emissionMaps.end());
+
+		std::vector<MeshTexture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT);
+		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 	}
 
 	animator.processBones(mesh, vertices);

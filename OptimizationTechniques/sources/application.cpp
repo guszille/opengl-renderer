@@ -189,6 +189,10 @@ void Application::processGUI(const ImGuiIO& io)
 		ImGui::EndMenuBar();
 	}
 
+	ImGui::Text("Mouse to rotare the camera.");
+	ImGui::Text("W/S/A/D and Q/E to move.");
+	ImGui::Text("LEFT CTRL to unlock/lock the cursor.");
+
 	ImGui::End();
 
 	if (currScene != nullptr)

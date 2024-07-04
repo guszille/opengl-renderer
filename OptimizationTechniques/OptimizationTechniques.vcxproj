@@ -176,6 +176,7 @@
     <ClCompile Include="sources\graphics\buffer.cpp" />
     <ClCompile Include="sources\graphics\depthmap.cpp" />
     <ClCompile Include="sources\graphics\basic_model.cpp" />
+    <ClCompile Include="sources\graphics\framebuffer.cpp" />
     <ClCompile Include="sources\graphics\model.cpp" />
     <ClCompile Include="sources\graphics\shader.cpp" />
     <ClCompile Include="sources\camera.cpp" />
@@ -197,6 +198,7 @@
     <ClInclude Include="sources\graphics\buffer.h" />
     <ClInclude Include="sources\graphics\depthmap.h" />
     <ClInclude Include="sources\graphics\basic_model.h" />
+    <ClInclude Include="sources\graphics\framebuffer.h" />
     <ClInclude Include="sources\graphics\model.h" />
     <ClInclude Include="sources\graphics\shader.h" />
     <ClInclude Include="sources\camera.h" />
@@ -216,6 +218,10 @@
   <ItemGroup>
     <None Include="sources\shaders\7_render_particles_fs.glsl" />
     <None Include="sources\shaders\7_render_particles_vs.glsl" />
+    <None Include="sources\shaders\8_render_color_and_brightness_fs.glsl" />
+    <None Include="sources\shaders\8_render_color_and_brightness_vs.glsl" />
+    <None Include="sources\shaders\9_render_hdr_screen_fs.glsl" />
+    <None Include="sources\shaders\9_render_hdr_screen_vs.glsl" />
     <None Include="sources\shaders\dev\render_debug_quad_fs.glsl" />
     <None Include="sources\shaders\dev\render_debug_quad_vs.glsl" />
     <None Include="sources\shaders\5_render_monochromatic_grass_fs.glsl" />

@@ -15,11 +15,15 @@ uniform mat4 uProjectionMatrix;
 
 uniform mat4 uBonesMatrices[MAX_NUM_BONES];
 
-out vec2 ioTexCoords;
+out VS_OUT {
+    vec2 texCoords;
+    vec3 fragPos;
+    vec3 fragNormal;
+} vs_out;
 
 void main()
 {
-    vec4 bPos = vec4(0.0);
+    mat4 bonesMatrix = mat4(0.0);
 
     for(int i = 0; i < MAX_NUM_BONES_PER_VERTEX; i++)
     {
@@ -30,17 +34,20 @@ void main()
 
         if(aBoneIDs[i] >= MAX_NUM_BONES)
         {
-            bPos = vec4(aPos, 1.0);
+            bonesMatrix = mat4(1.0);
 
             break;
         }
 
-        vec4 localPos = uBonesMatrices[aBoneIDs[i]] * vec4(aPos, 1.0);
-
-        bPos += localPos * aWeights[i];
+        bonesMatrix += uBonesMatrices[aBoneIDs[i]] * aWeights[i];
     }
 
-    gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * bPos;
+    mat4 mbMatrix = uModelMatrix * bonesMatrix;
+    mat3 normalMatrix = transpose(inverse(mat3(mbMatrix)));
 
-    ioTexCoords = aTexCoords;
+    vs_out.texCoords = aTexCoords;
+    vs_out.fragPos = vec3(mbMatrix * vec4(aPos, 1.0));
+    vs_out.fragNormal = normalize(normalMatrix * aNormal);
+
+    gl_Position = uProjectionMatrix * uViewMatrix * vec4(vs_out.fragPos, 1.0);
 }
