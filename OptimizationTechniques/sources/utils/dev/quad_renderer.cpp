@@ -8,10 +8,10 @@ QuadRenderer::QuadRenderer()
 void QuadRenderer::setup()
 {
 	float vertices[] = {
-		-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-		 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-		 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-		-1.0f,  1.0f, 0.0f, 0.0f, 1.0f
+		-1.0f, -1.0f,  0.0f,  0.0f,  0.0f,
+		 1.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+		 1.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f,  0.0f,  0.0f,  1.0f
 	};
 
 	unsigned int indices[] = {
@@ -54,11 +54,14 @@ void QuadRenderer::clean()
 	delete quadRender;
 }
 
-void QuadRenderer::render(int unit)
+void QuadRenderer::render(int unit, int colorChannels, int x, int y, int width, int height)
 {
 	quadRender->bind();
 
 	quadRender->setUniform1i("uTexture", unit);
+	quadRender->setUniform1i("uColorChannels", colorChannels);
+
+	glViewport(x, y, width, height);
 
 	glBindVertexArray(VAO);
 

@@ -8,7 +8,7 @@
 
 struct ProjectionProperties
 {
-	ProjectionProperties(float aspectRatio, float fov = 45.0f, float zNear = 0.1f, float zFar = 100.0f);
+	ProjectionProperties(float aspectRatio, float fov = 45.0f, float zNear = 0.1f, float zFar = 1000.0f);
 
 	float aspectRatio, fov, zNear, zFar;
 };

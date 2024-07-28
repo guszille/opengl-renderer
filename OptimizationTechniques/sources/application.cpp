@@ -4,7 +4,7 @@ Application::Application(int screenWidth, int screenHeight)
 	: screenWidth(screenWidth), screenHeight(screenHeight),
 	  keyboardState(), keyboardProcessedState(), mouseState(), mouseProcessedState(), cursorAttached(false), cursorTracked(true), lastMousePosition(), currMousePosition(),
 	  camera(glm::vec3(0.0f, 2.5f, 5.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), { float(screenWidth) / float(screenHeight) }),
-	  lastSceneType(SceneTypes::SKELETAL_ANIMATION), currSceneType(SceneTypes::SKELETAL_ANIMATION), currScene(nullptr)
+	  lastSceneType(SceneTypes::WATER), currSceneType(SceneTypes::WATER), currScene(nullptr)
 {
 }
 
@@ -30,6 +30,10 @@ void Application::setup()
 
 	case SceneTypes::SKELETAL_ANIMATION:
 		currScene = new SkeletalAnimationScene();
+		break;
+
+	case SceneTypes::WATER:
+		currScene = new WaterScene();
 		break;
 
 	default:
@@ -81,6 +85,10 @@ void Application::update(float deltaTime)
 
 			case SceneTypes::SKELETAL_ANIMATION:
 				currScene = new SkeletalAnimationScene();
+				break;
+
+			case SceneTypes::WATER:
+				currScene = new WaterScene();
 				break;
 
 			default:
@@ -181,6 +189,11 @@ void Application::processGUI(const ImGuiIO& io)
 			if (ImGui::MenuItem("Skeletal Animation", "5", currSceneType == SceneTypes::SKELETAL_ANIMATION))
 			{
 				currSceneType = SceneTypes::SKELETAL_ANIMATION;
+			}
+
+			if (ImGui::MenuItem("Water", "6", currSceneType == SceneTypes::WATER))
+			{
+				currSceneType = SceneTypes::WATER;
 			}
 
 			ImGui::EndMenu();

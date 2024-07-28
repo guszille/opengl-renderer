@@ -102,6 +102,12 @@
     <ClCompile Include="sources\graphics\framebuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sources\scenes\water_scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\graphics\cubemap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\utils\debug.h">
@@ -164,6 +170,12 @@
     <ClInclude Include="sources\graphics\framebuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="sources\scenes\water_scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\graphics\cubemap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="sources\shaders\1_render_model_vs.glsl" />
@@ -186,5 +198,13 @@
     <None Include="sources\shaders\8_render_color_and_brightness_vs.glsl" />
     <None Include="sources\shaders\9_render_hdr_screen_vs.glsl" />
     <None Include="sources\shaders\9_render_hdr_screen_fs.glsl" />
+    <None Include="sources\shaders\10_render_water_vs.glsl" />
+    <None Include="sources\shaders\10_render_water_fs.glsl" />
+    <None Include="sources\shaders\10_render_ground_vs.glsl" />
+    <None Include="sources\shaders\10_render_ground_fs.glsl" />
+    <None Include="sources\shaders\10_render_skybox_vs.glsl" />
+    <None Include="sources\shaders\10_render_skybox_fs.glsl" />
+    <None Include="sources\shaders\10_render_static_model_vs.glsl" />
+    <None Include="sources\shaders\10_render_static_model_fs.glsl" />
   </ItemGroup>
 </Project>

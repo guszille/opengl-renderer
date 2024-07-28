@@ -1,7 +1,7 @@
 #include "framebuffer.h"
 
-FrameBuffer::FrameBuffer(int width, int height, int numberOfColorBuffers, GLenum colorInternalFormat, GLenum filter, GLenum clampMode, int samples)
-	: ID(), numberOfColorBuffers(numberOfColorBuffers), colorBufferIDs(), depthAndStencilBufferID()
+FrameBuffer::FrameBuffer(int width, int height, int numberOfColorBuffers, GLenum colorInternalFormat, GLenum filter, GLenum clampMode, DepthAndStencilType depthAndStencilType, int samples)
+	: ID(), numberOfColorBuffers(numberOfColorBuffers), colorBufferIDs(), depthAndStencilBufferID(), depthAndStencilType(depthAndStencilType)
 {
 	glGenFramebuffers(1, &ID);
 	glBindFramebuffer(GL_FRAMEBUFFER, ID);
@@ -38,8 +38,25 @@ FrameBuffer::FrameBuffer(int width, int height, int numberOfColorBuffers, GLenum
 		std::cout << "[ERROR] FRAMEBUFFER: The number of color buffers must be between 1 and 32!" << std::endl;
 	}
 
-	// Creating depth/stencil buffer.
-	attachRenderBufferAsDepthAndStencilBuffer(width, height, samples);
+	// Creating depth and stencil buffer.
+	switch (depthAndStencilType)
+	{
+	case DepthAndStencilType::TEXTURE:
+		if (samples != 1)
+		{
+			std::cout << "[ERROR] FRAMEBUFFER: Depth/Stencil buffer type doesn't support the number of samples!" << std::endl;
+		}
+
+		attachTextureAsDepthAndStencilBuffer(width, height);
+		break;
+
+	case DepthAndStencilType::RENDER_BUFFER:
+		attachRenderBufferAsDepthAndStencilBuffer(width, height, samples);
+		break;
+
+	default:
+		break;
+	}
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
@@ -49,8 +66,8 @@ FrameBuffer::FrameBuffer(int width, int height, int numberOfColorBuffers, GLenum
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-FrameBuffer::FrameBuffer(int width, int height, std::vector<ColorBufferConfig> configurations, int samples)
-	: ID(), numberOfColorBuffers(configurations.size()), colorBufferIDs(), depthAndStencilBufferID()
+FrameBuffer::FrameBuffer(int width, int height, std::vector<ColorBufferConfig> configurations, DepthAndStencilType depthAndStencilType, int samples)
+	: ID(), numberOfColorBuffers(configurations.size()), colorBufferIDs(), depthAndStencilBufferID(), depthAndStencilType(depthAndStencilType)
 {
 	glGenFramebuffers(1, &ID);
 	glBindFramebuffer(GL_FRAMEBUFFER, ID);
@@ -91,8 +108,25 @@ FrameBuffer::FrameBuffer(int width, int height, std::vector<ColorBufferConfig> c
 		std::cout << "[ERROR] FRAMEBUFFER: The number of color buffers must be between 1 and 32!" << std::endl;
 	}
 
-	// Creating depth/stencil buffer.
-	attachRenderBufferAsDepthAndStencilBuffer(width, height, samples);
+	// Creating depth and stencil buffer.
+	switch (depthAndStencilType)
+	{
+	case DepthAndStencilType::TEXTURE:
+		if (samples != 1)
+		{
+			std::cout << "[ERROR] FRAMEBUFFER: Depth/Stencil buffer type doesn't support the number of samples!" << std::endl;
+		}
+
+		attachTextureAsDepthAndStencilBuffer(width, height);
+		break;
+
+	case DepthAndStencilType::RENDER_BUFFER:
+		attachRenderBufferAsDepthAndStencilBuffer(width, height, samples);
+		break;
+
+	default:
+		break;
+	}
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
@@ -125,6 +159,19 @@ void FrameBuffer::bindColorBuffer(int unit, int attachmentNumber)
 	}
 }
 
+void FrameBuffer::bindDepthAndStencilBuffer(int unit, int attachmentNumber)
+{
+	if (unit >= 0 && unit <= 15)
+	{
+		glActiveTexture(GL_TEXTURE0 + unit);
+		glBindTexture(GL_TEXTURE_2D, depthAndStencilBufferID);
+	}
+	else
+	{
+		std::cout << "[ERROR] FRAMEBUFFER: Failed to bind texture in " << unit << " unit" << std::endl;
+	}
+}
+
 void FrameBuffer::clean()
 {
 	glDeleteFramebuffers(1, &ID);
@@ -134,7 +181,19 @@ void FrameBuffer::clean()
 		glDeleteTextures(1, &colorBufferIDs[i]);
 	}
 
-	glDeleteRenderbuffers(1, &depthAndStencilBufferID);
+	switch (depthAndStencilType)
+	{
+	case DepthAndStencilType::TEXTURE:
+		glDeleteTextures(1, &depthAndStencilBufferID);
+		break;
+
+	case DepthAndStencilType::RENDER_BUFFER:
+		glDeleteRenderbuffers(1, &depthAndStencilBufferID);
+		break;
+
+	default:
+		break;
+	}
 }
 
 void FrameBuffer::attachTextureAsColorBuffer(int width, int height, int attachmentNumber, GLenum internalFormat, GLenum filter, GLenum clampMode, int samples)
@@ -190,6 +249,18 @@ void FrameBuffer::attachTextureAsColorBuffer(int width, int height, int attachme
 
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 	}
+}
+
+void FrameBuffer::attachTextureAsDepthAndStencilBuffer(int width, int height)
+{
+	glGenTextures(1, &depthAndStencilBufferID);
+	glBindTexture(GL_TEXTURE_2D, depthAndStencilBufferID);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthAndStencilBufferID, 0);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void FrameBuffer::attachRenderBufferAsDepthAndStencilBuffer(int width, int height, int samples)

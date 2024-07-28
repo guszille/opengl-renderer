@@ -174,6 +174,7 @@
     <ClCompile Include="program.cpp" />
     <ClCompile Include="sources\application.cpp" />
     <ClCompile Include="sources\graphics\buffer.cpp" />
+    <ClCompile Include="sources\graphics\cubemap.cpp" />
     <ClCompile Include="sources\graphics\depthmap.cpp" />
     <ClCompile Include="sources\graphics\basic_model.cpp" />
     <ClCompile Include="sources\graphics\framebuffer.cpp" />
@@ -185,6 +186,7 @@
     <ClCompile Include="sources\scenes\instancing_scene.cpp" />
     <ClCompile Include="sources\scenes\particles_scene.cpp" />
     <ClCompile Include="sources\scenes\skeletal_animation_scene.cpp" />
+    <ClCompile Include="sources\scenes\water_scene.cpp" />
     <ClCompile Include="sources\systems\particle_system.cpp" />
     <ClCompile Include="sources\utils\debug.cpp" />
     <ClCompile Include="sources\entity.cpp" />
@@ -196,6 +198,7 @@
   <ItemGroup>
     <ClInclude Include="sources\application.h" />
     <ClInclude Include="sources\graphics\buffer.h" />
+    <ClInclude Include="sources\graphics\cubemap.h" />
     <ClInclude Include="sources\graphics\depthmap.h" />
     <ClInclude Include="sources\graphics\basic_model.h" />
     <ClInclude Include="sources\graphics\framebuffer.h" />
@@ -207,6 +210,7 @@
     <ClInclude Include="sources\scenes\instancing_scene.h" />
     <ClInclude Include="sources\scenes\particles_scene.h" />
     <ClInclude Include="sources\scenes\skeletal_animation_scene.h" />
+    <ClInclude Include="sources\scenes\water_scene.h" />
     <ClInclude Include="sources\systems\particle_system.h" />
     <ClInclude Include="sources\utils\debug.h" />
     <ClInclude Include="sources\entity.h" />
@@ -216,12 +220,20 @@
     <ClInclude Include="sources\utils\noise_generator.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="sources\shaders\10_render_ground_fs.glsl" />
+    <None Include="sources\shaders\10_render_skybox_fs.glsl" />
+    <None Include="sources\shaders\10_render_skybox_vs.glsl" />
+    <None Include="sources\shaders\10_render_static_model_fs.glsl" />
+    <None Include="sources\shaders\10_render_static_model_vs.glsl" />
+    <None Include="sources\shaders\10_render_water_fs.glsl" />
+    <None Include="sources\shaders\10_render_water_vs.glsl" />
     <None Include="sources\shaders\7_render_particles_fs.glsl" />
     <None Include="sources\shaders\7_render_particles_vs.glsl" />
     <None Include="sources\shaders\8_render_color_and_brightness_fs.glsl" />
     <None Include="sources\shaders\8_render_color_and_brightness_vs.glsl" />
     <None Include="sources\shaders\9_render_hdr_screen_fs.glsl" />
     <None Include="sources\shaders\9_render_hdr_screen_vs.glsl" />
+    <None Include="sources\shaders\10_render_ground_vs.glsl" />
     <None Include="sources\shaders\dev\render_debug_quad_fs.glsl" />
     <None Include="sources\shaders\dev\render_debug_quad_vs.glsl" />
     <None Include="sources\shaders\5_render_monochromatic_grass_fs.glsl" />
