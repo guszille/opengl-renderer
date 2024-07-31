@@ -6,6 +6,7 @@
 #include "../graphics/cubemap.h"
 #include "../graphics/framebuffer.h"
 #include "../graphics/model.h"
+#include "../graphics/texture.h"
 #include "../scene.h"
 #include "../utils/dev/quad_renderer.h"
 
@@ -34,6 +35,7 @@ private:
 
 	VAO* waterMeshVAO;
 	VBO* waterMeshVBO;
+	IBO* waterMeshIBO;
 
 	int reflectionFBWidth, reflectionFBHeight;
 	int refractionFBWidth, refractionFBHeight;
@@ -41,15 +43,27 @@ private:
 	FrameBuffer* reflectionFB;
 	FrameBuffer* refractionFB;
 
+	Texture* waterDuDvMapTex;
+	Texture* waterNormalMapTex;
+
 	Model* marsModel;
-	Model* craterModel;
+	Model* terrainModel;
 
 	QuadRenderer* debugQuadRenderer;
 
+	uint32_t meshSize;
+	std::vector<float> meshVertices;
+	std::vector<uint32_t> meshIndices;
+
 	glm::vec3 waterPosition;
 	glm::vec3 terrainPosition;
+	glm::vec3 lightPosition, lightColor;
+
+	float tilingFactor, waveStrength, waveSpeed, waveStride;
+	float shininess, reflectivity;
 
 	float time;
 
+	void genWaterMesh(uint32_t gridSize);
 	void renderScene(const Camera& camera, float deltaTime, const glm::vec4& clipPlane = glm::vec4(0.0f));
 };

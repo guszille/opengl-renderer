@@ -13,7 +13,7 @@
 class Texture
 {
 public:
-	Texture(const char* filepath, bool gammaCorrection = false, bool genMipmap = false);
+	Texture(const char* filepath, GLenum filter = GL_NONE, GLenum clampMode = GL_NONE, bool gammaCorrection = false, bool genMipmap = false);
 	Texture(unsigned char* data, int width, int height, int internalFormat, int format);
 
 	void bind(int unit);

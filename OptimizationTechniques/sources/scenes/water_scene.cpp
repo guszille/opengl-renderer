@@ -3,11 +3,14 @@
 WaterScene::WaterScene()
     : Scene(), renderSkyBoxShader(nullptr), renderWaterShader(nullptr), renderStaticModelShader(nullptr),
       skyBoxCM(nullptr), skyBoxVAO(nullptr), skyBoxVBO(nullptr),
-      waterMeshVAO(nullptr), waterMeshVBO(nullptr),
+      waterMeshVAO(nullptr), waterMeshVBO(nullptr), waterMeshIBO(nullptr),
       reflectionFBWidth(1280), reflectionFBHeight(720), refractionFBWidth(1280), refractionFBHeight(720), reflectionFB(nullptr), refractionFB(nullptr),
-      marsModel(nullptr), craterModel(nullptr),
+      waterDuDvMapTex(nullptr), waterNormalMapTex(nullptr),
+      marsModel(nullptr), terrainModel(nullptr),
+      meshSize(500),
       debugQuadRenderer(nullptr),
-      waterPosition(0.0f, 0.0f, 0.0f), terrainPosition(0.0f, -1.0f, 0.0f),
+      waterPosition(0.0f, 0.0f, 0.0f), terrainPosition(-150.0f, -10.0f, 150.0f), lightPosition(15.0f, 300.0f, 15.0f), lightColor(1.0f, 1.0f, 1.0f),
+      tilingFactor(5.0f), waveStrength(0.02f), waveSpeed(0.025f), waveStride(0.0f), shininess(20.0f), reflectivity(0.5f),
       time(0.0f)
 {
 }
@@ -15,7 +18,7 @@ WaterScene::WaterScene()
 void WaterScene::setup()
 {
     float skyBoxVertices[] = {
-        // positions and uvs         
+        // positions and uvs
         -1.0f,  1.0f, -1.0f,
         -1.0f, -1.0f, -1.0f,
          1.0f, -1.0f, -1.0f,
@@ -71,7 +74,7 @@ void WaterScene::setup()
 
     // Setup shaders.
     renderSkyBoxShader = new ShaderProgram("sources/shaders/10_render_skybox_vs.glsl", "sources/shaders/10_render_skybox_fs.glsl");
-	renderWaterShader = new ShaderProgram("sources/shaders/10_render_water_vs.glsl", "sources/shaders/10_render_water_fs.glsl");
+    renderWaterShader = new ShaderProgram("sources/shaders/10_render_water_vs.glsl", "sources/shaders/10_render_water_fs.glsl");
     renderStaticModelShader = new ShaderProgram("sources/shaders/10_render_static_model_vs.glsl", "sources/shaders/10_render_static_model_fs.glsl");
 
     // Setup skybox cubemap.
@@ -99,36 +102,40 @@ void WaterScene::setup()
     skyBoxVBO->unbind();
 
     // Setup water mesh buffers.
+    genWaterMesh(meshSize);
+
     waterMeshVAO = new VAO();
-    waterMeshVBO = new VBO(planeVertices, sizeof(planeVertices));
+    waterMeshVBO = new VBO(&meshVertices[0], meshVertices.size() * sizeof(float));
+    waterMeshIBO = new IBO(&meshIndices[0], meshIndices.size() * sizeof(uint32_t));
 
     waterMeshVAO->bind();
     waterMeshVBO->bind();
+    waterMeshIBO->bind();
 
-    waterMeshVAO->setVertexAttribute(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(0));
-    waterMeshVAO->setVertexAttribute(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    waterMeshVAO->setVertexAttribute(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    waterMeshVAO->setVertexAttribute(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(0));
 
     waterMeshVAO->unbind(); // Unbind VAO before another buffer.
     waterMeshVBO->unbind();
+    waterMeshIBO->unbind();
 
     // Setup framebuffers.
     reflectionFB = new FrameBuffer(reflectionFBWidth, reflectionFBHeight, 1, GL_RGB, GL_LINEAR, GL_REPEAT);
     refractionFB = new FrameBuffer(refractionFBWidth, refractionFBHeight, 1, GL_RGB, GL_LINEAR, GL_REPEAT);
 
+    // Setup textures.
+    waterDuDvMapTex = new Texture("resources/textures/water_dudv1.png", GL_LINEAR, GL_REPEAT);
+    waterNormalMapTex = new Texture("resources/textures/water_normalmap.png", GL_LINEAR, GL_REPEAT);
+
     // Setup models.
     uint32_t modelLoaderFlags = aiProcess_Triangulate | aiProcess_GenNormals;
 
     marsModel = new Model("resources/models/mars/mars.obj", modelLoaderFlags);
-    craterModel = new Model("resources/models/crater/moon_crater.gltf", modelLoaderFlags);
+    terrainModel = new Model("resources/models/terrain/terrain.gltf", modelLoaderFlags);
 
     // Setup debug tools.
     debugQuadRenderer = new QuadRenderer();
 
     debugQuadRenderer->setup();
-
-    // Debug.
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void WaterScene::clean()
@@ -143,8 +150,10 @@ void WaterScene::clean()
     waterMeshVBO->clean();
     reflectionFB->clean();
     refractionFB->clean();
+    waterDuDvMapTex->clean();
+    waterNormalMapTex->clean();
     marsModel->clean();
-    craterModel->clean();
+    terrainModel->clean();
     debugQuadRenderer->clean();
 
     delete renderSkyBoxShader;
@@ -157,14 +166,23 @@ void WaterScene::clean()
     delete waterMeshVBO;
     delete reflectionFB;
     delete refractionFB;
+    delete waterDuDvMapTex;
+    delete waterNormalMapTex;
     delete marsModel;
-    delete craterModel;
+    delete terrainModel;
     delete debugQuadRenderer;
 }
 
 void WaterScene::update(float deltaTime)
 {
     time += deltaTime;
+
+    waveStride += waveSpeed * deltaTime;
+
+    if (waveStride > 1.0f)
+    {
+        waveStride = waveStride - 1.0f;
+    }
 }
 
 void WaterScene::render(const Camera& camera, float deltaTime)
@@ -209,9 +227,49 @@ void WaterScene::processGUI()
 
     ImGui::SeparatorText("Terrain");
 
-    ImGui::DragFloat3("Position", glm::value_ptr(terrainPosition), 0.1f, -10.0f, 10.0f, "%.1f");
+    ImGui::DragFloat3("Terrain Position", glm::value_ptr(terrainPosition), 0.1f, -1000.0f, 1000.0f, "%.1f");
+
+    ImGui::SeparatorText("Water");
+
+    ImGui::DragFloat("Tiling Factor", &tilingFactor, 0.1f, 0.0f, 15.0f, "%.1f");
+    ImGui::DragFloat("Wave Strength", &waveStrength, 0.005f, 0.0f, 1.0f, "%.3f");
+    ImGui::DragFloat("Wave Speed", &waveSpeed, 0.0005f, 0.0f, 1.0f, "%.4f");
+
+    ImGui::SeparatorText("Light");
+
+    ImGui::DragFloat3("Light Position", glm::value_ptr(lightPosition), 0.1f, -1000.0f, 1000.0f, "%.1f");
+
+    ImGui::ColorEdit3("Light Color", glm::value_ptr(lightColor));
 
     ImGui::End();
+}
+
+void WaterScene::genWaterMesh(uint32_t size)
+{
+    float gridOffset = static_cast<float>(size) / 2.0f;
+
+    for (uint32_t z = 0; z < size; z++)
+    {
+        for (uint32_t x = 0; x < size; x++)
+        {
+            meshVertices.push_back(x - gridOffset);
+            meshVertices.push_back(0.0f);
+            meshVertices.push_back(z - gridOffset);
+        }
+    }
+
+    for (uint32_t z = 0; z < size - 1; z++)
+    {
+        for (uint32_t x = 0; x < size - 1; x++)
+        {
+            meshIndices.push_back(z * size + x);
+            meshIndices.push_back((z + 1) * size + x);
+            meshIndices.push_back(z * size + (x + 1));
+            meshIndices.push_back(z * size + (x + 1));
+            meshIndices.push_back((z + 1) * size + x);
+            meshIndices.push_back((z + 1) * size + (x + 1));
+        }
+    }
 }
 
 void WaterScene::renderScene(const Camera& camera, float deltaTime, const glm::vec4& clipPlane)
@@ -248,23 +306,23 @@ void WaterScene::renderScene(const Camera& camera, float deltaTime, const glm::v
     // Render mars model.
     {
         glm::mat4 marsModelMatrix(1.0f);
-        marsModelMatrix = glm::translate(marsModelMatrix, glm::vec3(0.0f, 15.0f, -15.0f));
+        marsModelMatrix = glm::translate(marsModelMatrix, glm::vec3(0.0f, 25.0f, 0.0f));
 
         renderStaticModelShader->setUniformMatrix4fv("uModelMatrix", marsModelMatrix);
 
         marsModel->render(renderStaticModelShader);
     }
 
-    // Render crater model.
+    // Render terrain model.
     {
-        glm::mat4 craterModelMatrix(1.0f);
-        craterModelMatrix = glm::translate(craterModelMatrix, terrainPosition);
-        craterModelMatrix = glm::rotate(craterModelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        craterModelMatrix = glm::scale(craterModelMatrix, glm::vec3(100.0f));
+        glm::mat4 terrainModelMatrix(1.0f);
+        terrainModelMatrix = glm::translate(terrainModelMatrix, terrainPosition);
+        terrainModelMatrix = glm::rotate(terrainModelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        terrainModelMatrix = glm::scale(terrainModelMatrix, glm::vec3(0.25f));
 
-        renderStaticModelShader->setUniformMatrix4fv("uModelMatrix", craterModelMatrix);
+        renderStaticModelShader->setUniformMatrix4fv("uModelMatrix", terrainModelMatrix);
 
-        craterModel->render(renderStaticModelShader);
+        terrainModel->render(renderStaticModelShader);
     }
 
     renderStaticModelShader->unbind();
@@ -276,19 +334,38 @@ void WaterScene::renderScene(const Camera& camera, float deltaTime, const glm::v
     reflectionFB->bindColorBuffer(0);
     refractionFB->bindColorBuffer(1);
 
+    waterDuDvMapTex->bind(2);
+    waterNormalMapTex->bind(3);
+
     glm::mat4 waterModelMatrix(1.0f);
-    waterModelMatrix = glm::scale(waterModelMatrix, glm::vec3(200.0f, 0.0f, 200.0f));
 
     renderWaterShader->setUniformMatrix4fv("uProjectionMatrix", camera.getProjectionMatrix());
     renderWaterShader->setUniformMatrix4fv("uViewMatrix", camera.getViewMatrix());
     renderWaterShader->setUniformMatrix4fv("uModelMatrix", waterModelMatrix);
 
+    renderWaterShader->setUniform3f("uCameraPos", camera.getPosition());
+    renderWaterShader->setUniform3f("uLightPos", lightPosition);
+    renderWaterShader->setUniform3f("uLightColor", lightColor);
+
     renderWaterShader->setUniform1i("uReflectionTex", 0);
     renderWaterShader->setUniform1i("uRefractionTex", 1);
+    renderWaterShader->setUniform1i("uDuDvMap", 2);
+    renderWaterShader->setUniform1i("uNormalMap", 3);
+
+    renderWaterShader->setUniform1f("uHalfMeshSize", static_cast<float>(meshSize) / 2.0f);
+    renderWaterShader->setUniform1f("uTilingFactor", tilingFactor);
+    renderWaterShader->setUniform1f("uWaveStrength", waveStrength);
+    renderWaterShader->setUniform1f("uWaveStride", waveStride);
+    renderWaterShader->setUniform1f("uShininess", shininess);
+    renderWaterShader->setUniform1f("uReflectivity", reflectivity);
 
     if (glm::length(clipPlane) == 0.0f)
     {
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+        glDrawElements(GL_TRIANGLES, meshIndices.size(), GL_UNSIGNED_INT, 0);
+
+        // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
     waterMeshVAO->unbind();

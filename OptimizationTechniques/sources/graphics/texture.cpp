@@ -1,9 +1,11 @@
 #include "texture.h"
 
-Texture::Texture(const char* filepath, bool gammaCorrection, bool genMipmap)
+Texture::Texture(const char* filepath, GLenum filter, GLenum clampMode, bool gammaCorrection, bool genMipmap)
 	: ID()
 {
 	stbi_set_flip_vertically_on_load(true);
+
+	std::cout << "[LOG] TEXTURE: Loading texture \"" << filepath << "\"." << std::endl;
 
 	int width, height, colorChannels, internalFormat = GL_RED, format = GL_RED;
 	stbi_uc* data = stbi_load(filepath, &width, &height, &colorChannels, 0);
@@ -53,6 +55,20 @@ Texture::Texture(const char* filepath, bool gammaCorrection, bool genMipmap)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	}
 
+	// Override texture clampMode.
+	if (clampMode != GL_NONE)
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clampMode);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clampMode);
+	}
+
+	// Override texture filter.
+	if (filter != GL_NONE)
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+	}
+
 	if (data)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, data);
@@ -68,6 +84,8 @@ Texture::Texture(const char* filepath, bool gammaCorrection, bool genMipmap)
 	}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	std::cout << '\t' << "[LOG] TEXTURE: (colorChannels, " << colorChannels << ") (internalFormat, 0x" << std::hex << internalFormat << ") (format, 0x" << std::hex << format << ")." << std::endl;
 
 	stbi_image_free(data);
 }
