@@ -200,8 +200,6 @@
     <None Include="sources\shaders\9_render_hdr_screen_fs.glsl" />
     <None Include="sources\shaders\10_render_water_vs.glsl" />
     <None Include="sources\shaders\10_render_water_fs.glsl" />
-    <None Include="sources\shaders\10_render_ground_vs.glsl" />
-    <None Include="sources\shaders\10_render_ground_fs.glsl" />
     <None Include="sources\shaders\10_render_skybox_vs.glsl" />
     <None Include="sources\shaders\10_render_skybox_fs.glsl" />
     <None Include="sources\shaders\10_render_static_model_vs.glsl" />

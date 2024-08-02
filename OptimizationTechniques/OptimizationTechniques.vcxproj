@@ -220,7 +220,6 @@
     <ClInclude Include="sources\utils\noise_generator.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="sources\shaders\10_render_ground_fs.glsl" />
     <None Include="sources\shaders\10_render_skybox_fs.glsl" />
     <None Include="sources\shaders\10_render_skybox_vs.glsl" />
     <None Include="sources\shaders\10_render_static_model_fs.glsl" />
@@ -233,7 +232,6 @@
     <None Include="sources\shaders\8_render_color_and_brightness_vs.glsl" />
     <None Include="sources\shaders\9_render_hdr_screen_fs.glsl" />
     <None Include="sources\shaders\9_render_hdr_screen_vs.glsl" />
-    <None Include="sources\shaders\10_render_ground_vs.glsl" />
     <None Include="sources\shaders\dev\render_debug_quad_fs.glsl" />
     <None Include="sources\shaders\dev\render_debug_quad_vs.glsl" />
     <None Include="sources\shaders\5_render_monochromatic_grass_fs.glsl" />
