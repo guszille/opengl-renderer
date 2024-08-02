@@ -55,7 +55,7 @@ private:
 	std::vector<float> meshVertices;
 	std::vector<uint32_t> meshIndices;
 
-	glm::vec3 waterPosition;
+	glm::vec3 waterPosition, waterColor;
 	glm::vec3 terrainPosition;
 	glm::vec3 lightPosition, lightColor;
 

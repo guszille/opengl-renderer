@@ -27,7 +27,7 @@ public:
 	void unbind();
 
 	void bindColorBuffer(int unit, int attachmentNumber = 0);
-	void bindDepthAndStencilBuffer(int unit, int attachmentNumber = 0);
+	void bindDepthAndStencilBuffer(int unit);
 
 	void clean();
 

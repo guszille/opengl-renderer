@@ -14,16 +14,16 @@ FrameBuffer::FrameBuffer(int width, int height, int numberOfColorBuffers, GLenum
 	// Creating color buffers.
 	if (numberOfColorBuffers >= 1 && numberOfColorBuffers <= 32)
 	{
-		for (unsigned int i = 0; i < numberOfColorBuffers; i++)
+		for (uint32_t i = 0; i < numberOfColorBuffers; i++)
 		{
 			attachTextureAsColorBuffer(width, height, i, colorInternalFormat, filter, clampMode, samples);
 		}
 
 		if (numberOfColorBuffers > 1)
 		{
-			unsigned int* attachments = new unsigned int[numberOfColorBuffers];
+			uint32_t* attachments = new uint32_t[numberOfColorBuffers];
 
-			for (unsigned int i = 0; i < numberOfColorBuffers; i++)
+			for (uint32_t i = 0; i < numberOfColorBuffers; i++)
 			{
 				attachments[i] = GL_COLOR_ATTACHMENT0 + i;
 			}
@@ -82,7 +82,7 @@ FrameBuffer::FrameBuffer(int width, int height, std::vector<ColorBufferConfig> c
 	// Creating color buffers.
 	if (numberOfColorBuffers >= 1 && numberOfColorBuffers <= 32)
 	{
-		for (unsigned int i = 0; i < numberOfColorBuffers; i++)
+		for (uint32_t i = 0; i < numberOfColorBuffers; i++)
 		{
 			ColorBufferConfig config = configurations[i];
 
@@ -91,9 +91,9 @@ FrameBuffer::FrameBuffer(int width, int height, std::vector<ColorBufferConfig> c
 
 		if (numberOfColorBuffers > 1)
 		{
-			unsigned int* attachments = new unsigned int[numberOfColorBuffers];
+			uint32_t* attachments = new uint32_t[numberOfColorBuffers];
 
-			for (unsigned int i = 0; i < numberOfColorBuffers; i++)
+			for (uint32_t i = 0; i < numberOfColorBuffers; i++)
 			{
 				attachments[i] = GL_COLOR_ATTACHMENT0 + i;
 			}
@@ -155,20 +155,27 @@ void FrameBuffer::bindColorBuffer(int unit, int attachmentNumber)
 	}
 	else
 	{
-		std::cout << "[ERROR] FRAMEBUFFER: Failed to bind texture in " << unit << " unit" << std::endl;
+		std::cout << "[ERROR] FRAMEBUFFER: Failed to bind texture in " << unit << " unit." << std::endl;
 	}
 }
 
-void FrameBuffer::bindDepthAndStencilBuffer(int unit, int attachmentNumber)
+void FrameBuffer::bindDepthAndStencilBuffer(int unit)
 {
-	if (unit >= 0 && unit <= 15)
+	if (depthAndStencilType == DepthAndStencilType::TEXTURE)
 	{
-		glActiveTexture(GL_TEXTURE0 + unit);
-		glBindTexture(GL_TEXTURE_2D, depthAndStencilBufferID);
+		if (unit >= 0 && unit <= 15)
+		{
+			glActiveTexture(GL_TEXTURE0 + unit);
+			glBindTexture(GL_TEXTURE_2D, depthAndStencilBufferID);
+		}
+		else
+		{
+			std::cout << "[ERROR] FRAMEBUFFER: Failed to bind texture in " << unit << " unit." << std::endl;
+		}
 	}
 	else
 	{
-		std::cout << "[ERROR] FRAMEBUFFER: Failed to bind texture in " << unit << " unit" << std::endl;
+		std::cout << "[ERROR] FRAMEBUFFER: Depth/Stencil buffer is not a texture." << std::endl;
 	}
 }
 
@@ -176,7 +183,7 @@ void FrameBuffer::clean()
 {
 	glDeleteFramebuffers(1, &ID);
 
-	for (unsigned int i = 0; i < numberOfColorBuffers; i++)
+	for (uint32_t i = 0; i < numberOfColorBuffers; i++)
 	{
 		glDeleteTextures(1, &colorBufferIDs[i]);
 	}
@@ -257,6 +264,9 @@ void FrameBuffer::attachTextureAsDepthAndStencilBuffer(int width, int height)
 	glBindTexture(GL_TEXTURE_2D, depthAndStencilBufferID);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthAndStencilBufferID, 0);
 
