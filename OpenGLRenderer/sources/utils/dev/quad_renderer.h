@@ -14,7 +14,7 @@ public:
 	void setup();
 	void clean();
 
-	void render(int unit, int colorChannels = 1, int x = 0, int y = 0, int width = 16, int height = 9);
+	void render(int x, int y, int width, int height, int unit, int colorChannels = 1, bool linearize = false, float zNear = 0.1f, float zFar = 1000.0f);
 
 private:
 	uint32_t VAO, VBO, IBO;

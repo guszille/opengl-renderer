@@ -69,16 +69,16 @@ GrassScene::GrassScene()
 	: Scene(), currGrassType(GrassType::MONOCHROMATIC), nextGrassType(GrassType::MONOCHROMATIC),
 	  grassRenderShader(nullptr),
 	  grassVAO(nullptr), grassVBO(nullptr), instanceMatricesVBO(nullptr),
-	  modelMatrices(nullptr), instances(40000),
+	  modelMatrices(nullptr), instances(1000000),
 	  windEffect(WindEffect::NOISED), windDirection(1.0f, 0.0f, 0.0f), windIntensity(0.5f),
-	  time(),
+	  allowTimePass(true), time(0.0f),
 	  colorMapTex(nullptr),
 	  genericModelRenderShader(nullptr),
 	  groundVAO(nullptr), groundVBO(nullptr),
 	  sphereVAO(nullptr), sphereVBO(nullptr), sphereIBO(nullptr),
 	  lightAmbientComp(0.6f, 0.6f, 0.6f), lightDiffuseComp(1.0f, 1.0f, 0.6f), lightSpecularComp(1.0f, 1.0f, 1.0f),
 	  grassDiffuseComp(0.2f, 0.5f, 0.1f), grassSpecularComp(0.1f, 0.1f, 0.1f), grassSpecularShininess(64.0f),
-	  shadowMapRender(nullptr), shadowMap(nullptr), shadowMapSize(8192),
+	  shadowMapRender(nullptr), shadowMap(nullptr), shadowMapSize(16384),
 	  noiseTex(nullptr), noiseScale(0.1f), noiseStrength(1.0f),
 	  quadRenderer(nullptr), renderShadowMap(false), renderNoiseTex(nullptr),
 	  clearColor(0.25f, 0.5f, 0.75f)
@@ -99,7 +99,7 @@ void GrassScene::setup()
 		
 		modelMatrices = new glm::mat4[instances];
 		
-		float grassDensity = 16.0f;
+		float grassDensity = 8.0f;
 
 		for (int x = 0; x < axisLim; ++x)
 		{
@@ -153,9 +153,9 @@ void GrassScene::setup()
 		{
 			modelMatrices = new glm::mat4[instances];
 
-			NoiseGenerator& heightNoiseGenerator = NoiseGenerator::getInstance(std::rand(), 0.5f);
+			NoiseGenerator& heightNoiseGenerator = NoiseGenerator::getInstance(std::rand(), 0.05f);
 
-			float grassDensity = 16.0f;
+			float grassDensity = 8.0f;
 
 			for (int x = 0; x < axisLim; ++x)
 			{
@@ -168,11 +168,11 @@ void GrassScene::setup()
 					glm::vec3 position = glm::vec3(x + xOffset - axisOffset, 0.0f, z + zOffset - axisOffset) / grassDensity;
 					glm::mat4 modelMatrix = glm::mat4(1.0f);
 
-					float heightScale = 0.5f + 2.0f * std::abs(heightNoiseGenerator.getNoise2D(position.x, position.z)); // [-1.0f, 1.0f] to [0.5f, 2.5f].
+					float heightScale = 2.0f * (1.0f + heightNoiseGenerator.getNoise2D(position.x, position.z)); // [-1.0f, 1.0f] to [0.0f, 2.0f].
 
 					modelMatrix = glm::rotate(modelMatrix, glm::radians(rOffset), glm::vec3(0.0f, 1.0f, 0.0f));
 					modelMatrix = glm::translate(modelMatrix, position);
-					modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1f, heightScale, 0.1f));
+					modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f, heightScale, 0.2f));
 
 					modelMatrices[x * axisLim + z] = modelMatrix;
 				}
@@ -316,18 +316,21 @@ void GrassScene::clean()
 
 void GrassScene::update(float deltaTime)
 {
-	/*
-	if (time + deltaTime >= 360.0f)
+	if (allowTimePass)
 	{
-		time = 0.0f;
-	}
-	else
-	{
+		/*
+		if (time + deltaTime >= 360.0f)
+		{
+			time = 0.0f;
+		}
+		else
+		{
+			time += deltaTime;
+		}
+		*/
+
 		time += deltaTime;
 	}
-	*/
-
-	time += deltaTime;
 
 	if (currGrassType != nextGrassType)
 	{
@@ -367,11 +370,11 @@ void GrassScene::render(const Camera& camera, float deltaTime)
 	{
 		int viewport[4];
 
-		float x = 15.0f * glm::cos(time / 5.0f);
-		float z = 15.0f * glm::abs(glm::sin(time / 5.0f));
+		float x = 100.0f * glm::cos(time / 5.0f);
+		float z = 100.0f * glm::abs(glm::sin(time / 5.0f));
 
-		glm::vec3 lightPosition = glm::vec3(x, 15.0f, z);
-		glm::mat4 lightProjectionMatrix = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 30.0f);
+		glm::vec3 lightPosition = glm::vec3(x, 100.0f, z);
+		glm::mat4 lightProjectionMatrix = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, 1.0f, 1000.0f);
 		glm::mat4 lightViewMatrix = glm::lookAt(lightPosition, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 lightSpaceMatrix = lightProjectionMatrix * lightViewMatrix;
 
@@ -405,128 +408,119 @@ void GrassScene::render(const Camera& camera, float deltaTime)
 		grassVAO->unbind();
 
 		// Render scene.
-		if (!renderShadowMap && !renderNoiseTex)
+		glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+
+		glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// Draw ground.
 		{
-			glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+			glm::mat4 modelMatrix(1.0f);
+			modelMatrix = glm::scale(modelMatrix, glm::vec3(1000.0f, 1.0f, 1000.0f));
 
-			glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			groundVAO->bind();
+			genericModelRenderShader->bind();
 
-			// Draw ground.
-			{
-				glm::mat4 modelMatrix(1.0f);
-				modelMatrix = glm::scale(modelMatrix, glm::vec3(20.0f, 1.0f, 20.0f));
+			genericModelRenderShader->setUniformMatrix4fv("uProjectionMatrix", camera.getProjectionMatrix());
+			genericModelRenderShader->setUniformMatrix4fv("uViewMatrix", camera.getViewMatrix());
+			genericModelRenderShader->setUniformMatrix4fv("uModelMatrix", modelMatrix);
+			genericModelRenderShader->setUniformMatrix4fv("uLightSpaceMatrix", lightSpaceMatrix);
 
-				groundVAO->bind();
-				genericModelRenderShader->bind();
+			genericModelRenderShader->setUniform3f("uLight.ambient", lightAmbientComp);
+			genericModelRenderShader->setUniform3f("uLight.diffuse", lightDiffuseComp);
+			genericModelRenderShader->setUniform3f("uLight.specular", lightSpecularComp);
+			genericModelRenderShader->setUniform3f("uLight.position", lightPosition);
+			genericModelRenderShader->setUniform3f("uMaterial.diffuse", grassDiffuseComp);
+			genericModelRenderShader->setUniform3f("uMaterial.specular", grassSpecularComp);
+			genericModelRenderShader->setUniform1f("uMaterial.shininess", grassSpecularShininess);
+			genericModelRenderShader->setUniform1i("uShadowMap", 0);
+			genericModelRenderShader->setUniform3f("uViewPos", camera.getPosition());
+			genericModelRenderShader->setUniform1f("uShadowBiasFactor", 0.0005f);
+			genericModelRenderShader->setUniform1f("uMaxShadowBias", 0.00005f);
 
-				genericModelRenderShader->setUniformMatrix4fv("uProjectionMatrix", camera.getProjectionMatrix());
-				genericModelRenderShader->setUniformMatrix4fv("uViewMatrix", camera.getViewMatrix());
-				genericModelRenderShader->setUniformMatrix4fv("uModelMatrix", modelMatrix);
-				genericModelRenderShader->setUniformMatrix4fv("uLightSpaceMatrix", lightSpaceMatrix);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
 
-				genericModelRenderShader->setUniform3f("uLight.ambient", lightAmbientComp);
-				genericModelRenderShader->setUniform3f("uLight.diffuse", lightDiffuseComp);
-				genericModelRenderShader->setUniform3f("uLight.specular", lightSpecularComp);
-				genericModelRenderShader->setUniform3f("uLight.position", lightPosition);
-				genericModelRenderShader->setUniform3f("uMaterial.diffuse", glm::vec3(0.2f, 0.4f, 0.0f));
-				genericModelRenderShader->setUniform3f("uMaterial.specular", glm::vec3(0.0f, 0.0f, 0.0f));
-				genericModelRenderShader->setUniform1f("uMaterial.shininess", 64.0f);
-				genericModelRenderShader->setUniform1i("uShadowMap", 0);
-				genericModelRenderShader->setUniform3f("uViewPos", camera.getPosition());
-				genericModelRenderShader->setUniform1f("uShadowBiasFactor", 0.0005f);
-				genericModelRenderShader->setUniform1f("uMaxShadowBias", 0.00005f);
-
-				glDrawArrays(GL_TRIANGLES, 0, 6);
-
-				genericModelRenderShader->unbind();
-				groundVAO->unbind();
-			}
-
-			// Draw grass.
-			{
-				grassVAO->bind();
-				grassRenderShader->bind();
-
-				grassRenderShader->setUniformMatrix4fv("uProjectionMatrix", camera.getProjectionMatrix());
-				grassRenderShader->setUniformMatrix4fv("uViewMatrix", camera.getViewMatrix());
-				grassRenderShader->setUniformMatrix4fv("uLightSpaceMatrix", lightSpaceMatrix);
-				grassRenderShader->setUniform1i("uWindEffect", int(windEffect));
-				grassRenderShader->setUniform3f("uWindDirection", windDirection);
-				grassRenderShader->setUniform1f("uWindIntensity", windIntensity);
-				grassRenderShader->setUniform1f("uNoiseScale", noiseScale);
-				grassRenderShader->setUniform1f("uNoiseStrength", noiseStrength);
-				grassRenderShader->setUniform1f("uTime", time);
-
-				grassRenderShader->setUniform3f("uLight.ambient", lightAmbientComp);
-				grassRenderShader->setUniform3f("uLight.diffuse", lightDiffuseComp);
-				grassRenderShader->setUniform3f("uLight.specular", lightSpecularComp);
-				grassRenderShader->setUniform3f("uLight.position", lightPosition);
-				grassRenderShader->setUniform3f("uMaterial.diffuse", grassDiffuseComp);
-				grassRenderShader->setUniform3f("uMaterial.specular", grassSpecularComp);
-				grassRenderShader->setUniform1f("uMaterial.shininess", grassSpecularShininess);
-				grassRenderShader->setUniform1i("uShadowMap", 0);
-				grassRenderShader->setUniform1i("uNoiseTex", 1);
-				grassRenderShader->setUniform3f("uViewPos", camera.getPosition());
-
-				glDrawArraysInstanced(GL_TRIANGLES, 0, 15, instances);
-
-				grassRenderShader->unbind();
-				grassVAO->unbind();
-			}
-
-			// Draw sphere.
-			{
-				glm::mat4 modelMatrix(1.0f);
-				modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 1.0f, 0.0f));
-
-				sphereVAO->bind();
-				genericModelRenderShader->bind();
-
-				genericModelRenderShader->setUniformMatrix4fv("uProjectionMatrix", camera.getProjectionMatrix());
-				genericModelRenderShader->setUniformMatrix4fv("uViewMatrix", camera.getViewMatrix());
-				genericModelRenderShader->setUniformMatrix4fv("uModelMatrix", modelMatrix);
-				genericModelRenderShader->setUniformMatrix4fv("uLightSpaceMatrix", lightSpaceMatrix);
-
-				genericModelRenderShader->setUniform3f("uLight.ambient", lightAmbientComp);
-				genericModelRenderShader->setUniform3f("uLight.diffuse", lightDiffuseComp);
-				genericModelRenderShader->setUniform3f("uLight.specular", lightSpecularComp);
-				genericModelRenderShader->setUniform3f("uLight.position", lightPosition);
-				genericModelRenderShader->setUniform3f("uMaterial.diffuse", glm::vec3(0.6f, 0.6f, 0.6f));
-				genericModelRenderShader->setUniform3f("uMaterial.specular", glm::vec3(0.0f, 0.0f, 0.0f));
-				genericModelRenderShader->setUniform1f("uMaterial.shininess", 64.0f);
-				genericModelRenderShader->setUniform1i("uShadowMap", 0);
-				genericModelRenderShader->setUniform3f("uViewPos", camera.getPosition());
-				genericModelRenderShader->setUniform1f("uShadowBiasFactor", 0.0005f);
-				genericModelRenderShader->setUniform1f("uMaxShadowBias", 0.00005f);
-
-				glDrawElements(GL_TRIANGLES, sphereIndices.size(), GL_UNSIGNED_INT, 0);
-
-				genericModelRenderShader->unbind();
-				sphereVAO->unbind();
-			}
+			genericModelRenderShader->unbind();
+			groundVAO->unbind();
 		}
-		else if (renderShadowMap)
+
+		// Draw grass.
 		{
-			glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+			grassVAO->bind();
+			grassRenderShader->bind();
 
-			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			grassRenderShader->setUniformMatrix4fv("uProjectionMatrix", camera.getProjectionMatrix());
+			grassRenderShader->setUniformMatrix4fv("uViewMatrix", camera.getViewMatrix());
+			grassRenderShader->setUniformMatrix4fv("uLightSpaceMatrix", lightSpaceMatrix);
+			grassRenderShader->setUniform1i("uWindEffect", int(windEffect));
+			grassRenderShader->setUniform3f("uWindDirection", windDirection);
+			grassRenderShader->setUniform1f("uWindIntensity", windIntensity);
+			grassRenderShader->setUniform1f("uNoiseScale", noiseScale);
+			grassRenderShader->setUniform1f("uNoiseStrength", noiseStrength);
+			grassRenderShader->setUniform1f("uTime", time);
 
-			quadRenderer->render(0);
+			grassRenderShader->setUniform3f("uLight.ambient", lightAmbientComp);
+			grassRenderShader->setUniform3f("uLight.diffuse", lightDiffuseComp);
+			grassRenderShader->setUniform3f("uLight.specular", lightSpecularComp);
+			grassRenderShader->setUniform3f("uLight.position", lightPosition);
+			grassRenderShader->setUniform3f("uMaterial.diffuse", grassDiffuseComp);
+			grassRenderShader->setUniform3f("uMaterial.specular", grassSpecularComp);
+			grassRenderShader->setUniform1f("uMaterial.shininess", grassSpecularShininess);
+			grassRenderShader->setUniform1i("uShadowMap", 0);
+			grassRenderShader->setUniform1i("uNoiseTex", 1);
+			grassRenderShader->setUniform3f("uViewPos", camera.getPosition());
+
+			glDrawArraysInstanced(GL_TRIANGLES, 0, 15, instances);
+
+			grassRenderShader->unbind();
+			grassVAO->unbind();
 		}
-		else if (renderNoiseTex)
+
+		// Draw sphere.
 		{
-			glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+			glm::mat4 modelMatrix(1.0f);
+			modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 1.0f, 0.0f));
 
-			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			sphereVAO->bind();
+			genericModelRenderShader->bind();
 
-			quadRenderer->render(1);
+			genericModelRenderShader->setUniformMatrix4fv("uProjectionMatrix", camera.getProjectionMatrix());
+			genericModelRenderShader->setUniformMatrix4fv("uViewMatrix", camera.getViewMatrix());
+			genericModelRenderShader->setUniformMatrix4fv("uModelMatrix", modelMatrix);
+			genericModelRenderShader->setUniformMatrix4fv("uLightSpaceMatrix", lightSpaceMatrix);
+
+			genericModelRenderShader->setUniform3f("uLight.ambient", lightAmbientComp);
+			genericModelRenderShader->setUniform3f("uLight.diffuse", lightDiffuseComp);
+			genericModelRenderShader->setUniform3f("uLight.specular", lightSpecularComp);
+			genericModelRenderShader->setUniform3f("uLight.position", lightPosition);
+			genericModelRenderShader->setUniform3f("uMaterial.diffuse", glm::vec3(0.6f, 0.6f, 0.6f));
+			genericModelRenderShader->setUniform3f("uMaterial.specular", glm::vec3(0.0f, 0.0f, 0.0f));
+			genericModelRenderShader->setUniform1f("uMaterial.shininess", 64.0f);
+			genericModelRenderShader->setUniform1i("uShadowMap", 0);
+			genericModelRenderShader->setUniform3f("uViewPos", camera.getPosition());
+			genericModelRenderShader->setUniform1f("uShadowBiasFactor", 0.0005f);
+			genericModelRenderShader->setUniform1f("uMaxShadowBias", 0.00005f);
+
+			// glDrawElements(GL_TRIANGLES, sphereIndices.size(), GL_UNSIGNED_INT, 0);
+
+			genericModelRenderShader->unbind();
+			sphereVAO->unbind();
+		}
+
+		if (renderShadowMap)
+		{
+			quadRenderer->render(viewport[2] - 16 - 256, viewport[3] - 16 - 144, 256, 144, 0, 1);
+		}
+
+		if (renderNoiseTex)
+		{
+			quadRenderer->render(viewport[2] - 16 - 256, viewport[3] - 32 - 288, 256, 144, 1, 1);
 		}
 
 		noiseTex->unbind();
 		shadowMap->unbindDepthBuffer();
+
+		glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 	}
 }
 
@@ -555,7 +549,7 @@ void GrassScene::processGUI()
 		ImGui::EndMenuBar();
 	}
 
-	ImGui::Text("%i instances (%i vertices)", instances, currGrassType == GrassType::TEXTURIZED ? 12 * instances : 3 * instances);
+	ImGui::Text("%i instances (%i vertices)", instances, currGrassType == GrassType::TEXTURIZED ? 12 * instances : 15 * instances);
 
 	if (currGrassType == GrassType::TEXTURIZED)
 	{
@@ -612,6 +606,7 @@ void GrassScene::processGUI()
 		ImGui::SeparatorText("Etc");
 		
 		ImGui::ColorEdit3("Clear Color", &clearColor[0]);
+		ImGui::Checkbox("Allow Time Pass", &allowTimePass);
 	}
 
 	ImGui::End();

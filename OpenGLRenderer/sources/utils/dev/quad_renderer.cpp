@@ -54,12 +54,15 @@ void QuadRenderer::clean()
 	delete quadRender;
 }
 
-void QuadRenderer::render(int unit, int colorChannels, int x, int y, int width, int height)
+void QuadRenderer::render(int x, int y, int width, int height, int unit, int colorChannels, bool linearize, float zNear, float zFar)
 {
 	quadRender->bind();
 
 	quadRender->setUniform1i("uTexture", unit);
 	quadRender->setUniform1i("uColorChannels", colorChannels);
+	quadRender->setUniform1i("uLinearize", linearize);
+	quadRender->setUniform1f("uNear", zNear);
+	quadRender->setUniform1f("uFar", zFar);
 
 	glViewport(x, y, width, height);
 

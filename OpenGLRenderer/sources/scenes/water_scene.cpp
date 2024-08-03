@@ -211,13 +211,15 @@ void WaterScene::render(const Camera& camera, float deltaTime)
 
 	renderScene(camera, deltaTime);
 
+	ProjectionProperties cameraProps = camera.getProjectionProperties();
+
 	reflectionFB->bindColorBuffer(0);
 	refractionFB->bindColorBuffer(1);
 	refractionFB->bindDepthAndStencilBuffer(2);
 
-	debugQuadRenderer->render(0, 3, viewport[2] - 16 - 256, viewport[3] - 16 - 144, 256, 144);
-	debugQuadRenderer->render(1, 3, viewport[2] - 16 - 256, viewport[3] - 32 - 288, 256, 144);
-	debugQuadRenderer->render(2, 1, viewport[2] - 16 - 256, viewport[3] - 48 - 432, 256, 144);
+	debugQuadRenderer->render(viewport[2] - 16 - 256, viewport[3] - 16 - 144, 256, 144, 0, 3);
+	debugQuadRenderer->render(viewport[2] - 16 - 256, viewport[3] - 32 - 288, 256, 144, 1, 3);
+	debugQuadRenderer->render(viewport[2] - 16 - 256, viewport[3] - 48 - 432, 256, 144, 2, 1, true, cameraProps.zNear, cameraProps.zFar);
 
 	glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 }

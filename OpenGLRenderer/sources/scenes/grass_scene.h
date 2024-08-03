@@ -46,6 +46,7 @@ private:
 	glm::vec3 windDirection;
 	float windIntensity;
 
+	bool allowTimePass;
 	float time;
 
 	Texture* colorMapTex;
@@ -83,6 +84,7 @@ private:
 	bool renderNoiseTex;
 
 	glm::vec3 clearColor;
+
 
 	void generateSphereObject(float radius, int slices, int stacks, std::vector<float>& vertices, std::vector<uint32_t>& indices);
 };

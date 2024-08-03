@@ -89,7 +89,7 @@ void main()
     float specularStr = pow(max(dot(fragNormal, halfwayDir), 0.0), uMaterial.shininess);
     float lightScale = pow(fs_in.fragPosModelSpace.y, 2.0);
 
-    vec3 diffuseColor = (lightScale * vec3(0.3, 0.1, 0.1)) + uMaterial.diffuse;
+    vec3 diffuseColor = (lightScale * vec3(0.15, 0.05, 0.05)) + uMaterial.diffuse;
     vec3 specularColor = uMaterial.specular;
 
     // Calculating Blinn-Phong lighting components.
