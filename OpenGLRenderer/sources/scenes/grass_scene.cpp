@@ -1,70 +1,5 @@
 #include "grass_scene.h"
 
-float singleQuadVertices[] = {
-	// positions         // uvs
-	-0.5f, -0.5f,  0.0f,  1.0f,  0.0f, // bottom-left
-	 0.5f, -0.5f,  0.0f,  0.0f,  0.0f, // bottom-right
-	 0.5f,  0.5f,  0.0f,  0.0f,  1.0f, // top-right
-	 0.5f,  0.5f,  0.0f,  0.0f,  1.0f, // top-right
-	-0.5f,  0.5f,  0.0f,  1.0f,  1.0f, // top-left
-	-0.5f, -0.5f,  0.0f,  1.0f,  0.0f, // bottom-left
-};
-
-float doubleQuadVertices[] = {
-	// positions         // uvs
-	-0.5f, -0.5f,  0.0f,  1.0f,  0.0f, // bottom-left
-	 0.5f, -0.5f,  0.0f,  0.0f,  0.0f, // bottom-right
-	 0.5f,  0.5f,  0.0f,  0.0f,  1.0f, // top-right
-	 0.5f,  0.5f,  0.0f,  0.0f,  1.0f, // top-right
-	-0.5f,  0.5f,  0.0f,  1.0f,  1.0f, // top-left
-	-0.5f, -0.5f,  0.0f,  1.0f,  0.0f, // bottom-left
-	 
-	 0.0f, -0.5f, -0.5f,  1.0f,  0.0f, // bottom-back
-	 0.0f, -0.5f,  0.5f,  0.0f,  0.0f, // bottom-front
-	 0.0f,  0.5f,  0.5f,  0.0f,  1.0f, // top-front
-	 0.0f,  0.5f,  0.5f,  0.0f,  1.0f, // top-front
-	 0.0f,  0.5f, -0.5f,  1.0f,  1.0f, // top-back
-	 0.0f, -0.5f, -0.5f,  1.0f,  0.0f, // bottom-back
-};
-
-float triangleVertices[] = {
-	// positions         // normals
-	-0.5f, -0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-left
-	 0.5f, -0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-right
-	 0.0f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // top
-};
-
-float planeVertices[] = {
-	// positions         // normals
-	 0.5f,  0.0f,  0.5f,  0.0f,  1.0f,  0.0f,
-	-0.5f,  0.0f,  0.5f,  0.0f,  1.0f,  0.0f,
-	-0.5f,  0.0f, -0.5f,  0.0f,  1.0f,  0.0f,
-	 0.5f,  0.0f,  0.5f,  0.0f,  1.0f,  0.0f,
-	-0.5f,  0.0f, -0.5f,  0.0f,  1.0f,  0.0f,
-	 0.5f,  0.0f, -0.5f,  0.0f,  1.0f,  0.0f,
-};
-
-float leafVertices[] = {
-	// positions         // normals
-	-0.5f,  0.0f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-left
-	 0.5f,  0.0f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-right
-	-0.3f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // top
-	-0.3f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // top-left
-	 0.5f,  0.0f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom
-	 0.3f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // top-right
-
-	-0.3f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-left
-	 0.3f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-right
-	-0.2f,  0.8f,  0.0f,  0.0f,  0.0f,  1.0f, // top
-	-0.2f,  0.8f,  0.0f,  0.0f,  0.0f,  1.0f, // top-left
-	 0.3f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom
-	 0.2f,  0.8f,  0.0f,  0.0f,  0.0f,  1.0f, // top-right
-
-	-0.2f,  0.8f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-left
-	 0.2f,  0.8f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-right
-	 0.0f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f, // top
-};
-
 GrassScene::GrassScene()
 	: Scene(), currGrassType(GrassType::MONOCHROMATIC), nextGrassType(GrassType::MONOCHROMATIC),
 	  grassRenderShader(nullptr),
@@ -90,6 +25,71 @@ void GrassScene::setup()
 	std::size_t vec4_s = sizeof(glm::vec4);
 	int axisLim = int(std::sqrtf(float(instances)));
 	int axisOffset = axisLim / 2;
+
+	float singleQuadVertices[] = {
+		// positions         // uvs
+		-0.5f, -0.5f,  0.0f,  1.0f,  0.0f, // bottom-left
+		 0.5f, -0.5f,  0.0f,  0.0f,  0.0f, // bottom-right
+		 0.5f,  0.5f,  0.0f,  0.0f,  1.0f, // top-right
+		 0.5f,  0.5f,  0.0f,  0.0f,  1.0f, // top-right
+		-0.5f,  0.5f,  0.0f,  1.0f,  1.0f, // top-left
+		-0.5f, -0.5f,  0.0f,  1.0f,  0.0f, // bottom-left
+	};
+
+	float doubleQuadVertices[] = {
+		// positions         // uvs
+		-0.5f, -0.5f,  0.0f,  1.0f,  0.0f, // bottom-left
+		 0.5f, -0.5f,  0.0f,  0.0f,  0.0f, // bottom-right
+		 0.5f,  0.5f,  0.0f,  0.0f,  1.0f, // top-right
+		 0.5f,  0.5f,  0.0f,  0.0f,  1.0f, // top-right
+		-0.5f,  0.5f,  0.0f,  1.0f,  1.0f, // top-left
+		-0.5f, -0.5f,  0.0f,  1.0f,  0.0f, // bottom-left
+
+		 0.0f, -0.5f, -0.5f,  1.0f,  0.0f, // bottom-back
+		 0.0f, -0.5f,  0.5f,  0.0f,  0.0f, // bottom-front
+		 0.0f,  0.5f,  0.5f,  0.0f,  1.0f, // top-front
+		 0.0f,  0.5f,  0.5f,  0.0f,  1.0f, // top-front
+		 0.0f,  0.5f, -0.5f,  1.0f,  1.0f, // top-back
+		 0.0f, -0.5f, -0.5f,  1.0f,  0.0f, // bottom-back
+	};
+
+	float triangleVertices[] = {
+		// positions         // normals
+		-0.5f, -0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-left
+		 0.5f, -0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-right
+		 0.0f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // top
+	};
+
+	float planeVertices[] = {
+		// positions         // normals
+		 0.5f,  0.0f,  0.5f,  0.0f,  1.0f,  0.0f,
+		-0.5f,  0.0f,  0.5f,  0.0f,  1.0f,  0.0f,
+		-0.5f,  0.0f, -0.5f,  0.0f,  1.0f,  0.0f,
+		 0.5f,  0.0f,  0.5f,  0.0f,  1.0f,  0.0f,
+		-0.5f,  0.0f, -0.5f,  0.0f,  1.0f,  0.0f,
+		 0.5f,  0.0f, -0.5f,  0.0f,  1.0f,  0.0f,
+	};
+
+	float leafVertices[] = {
+		// positions         // normals
+		-0.5f,  0.0f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-left
+		 0.5f,  0.0f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-right
+		-0.3f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // top
+		-0.3f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // top-left
+		 0.5f,  0.0f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom
+		 0.3f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // top-right
+
+		-0.3f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-left
+		 0.3f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-right
+		-0.2f,  0.8f,  0.0f,  0.0f,  0.0f,  1.0f, // top
+		-0.2f,  0.8f,  0.0f,  0.0f,  0.0f,  1.0f, // top-left
+		 0.3f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom
+		 0.2f,  0.8f,  0.0f,  0.0f,  0.0f,  1.0f, // top-right
+
+		-0.2f,  0.8f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-left
+		 0.2f,  0.8f,  0.0f,  0.0f,  0.0f,  1.0f, // bottom-right
+		 0.0f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f, // top
+	};
 
 	std::srand(std::time(NULL));
 

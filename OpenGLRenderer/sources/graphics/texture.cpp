@@ -91,6 +91,7 @@ Texture::Texture(const char* filepath, GLenum filter, GLenum clampMode, bool gam
 }
 
 Texture::Texture(unsigned char* data, int width, int height, int internalFormat, int format)
+	: ID()
 {
 	glGenTextures(1, &ID);
 	glBindTexture(GL_TEXTURE_2D, ID);

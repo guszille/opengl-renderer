@@ -16,7 +16,6 @@ out VS_OUT {
     vec3 fragNormal;
 } vs_out;
 
-
 void main()
 {
     mat3 normalMatrix = transpose(inverse(mat3(uModelMatrix)));

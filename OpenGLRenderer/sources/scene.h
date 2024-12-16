@@ -14,7 +14,8 @@ enum class SceneTypes
 	GRASS,
 	PARTICLES,
 	SKELETAL_ANIMATION,
-	WATER
+	WATER,
+	TESSELLATION
 };
 
 class Scene

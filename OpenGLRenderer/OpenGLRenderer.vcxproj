@@ -187,6 +187,7 @@
     <ClCompile Include="sources\scenes\instancing_scene.cpp" />
     <ClCompile Include="sources\scenes\particles_scene.cpp" />
     <ClCompile Include="sources\scenes\skeletal_animation_scene.cpp" />
+    <ClCompile Include="sources\scenes\tessellation_scene.cpp" />
     <ClCompile Include="sources\scenes\water_scene.cpp" />
     <ClCompile Include="sources\systems\particle_system.cpp" />
     <ClCompile Include="sources\utils\debug.cpp" />
@@ -211,6 +212,7 @@
     <ClInclude Include="sources\scenes\instancing_scene.h" />
     <ClInclude Include="sources\scenes\particles_scene.h" />
     <ClInclude Include="sources\scenes\skeletal_animation_scene.h" />
+    <ClInclude Include="sources\scenes\tessellation_scene.h" />
     <ClInclude Include="sources\scenes\water_scene.h" />
     <ClInclude Include="sources\systems\particle_system.h" />
     <ClInclude Include="sources\utils\debug.h" />
@@ -227,6 +229,8 @@
     <None Include="sources\shaders\10_render_static_model_vs.glsl" />
     <None Include="sources\shaders\10_render_water_fs.glsl" />
     <None Include="sources\shaders\10_render_water_vs.glsl" />
+    <None Include="sources\shaders\11_render_mesh_fs.glsl" />
+    <None Include="sources\shaders\11_render_mesh_vs.glsl" />
     <None Include="sources\shaders\7_render_particles_fs.glsl" />
     <None Include="sources\shaders\7_render_particles_vs.glsl" />
     <None Include="sources\shaders\8_render_color_and_brightness_fs.glsl" />

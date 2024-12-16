@@ -4,7 +4,7 @@ Application::Application(int screenWidth, int screenHeight)
 	: screenWidth(screenWidth), screenHeight(screenHeight),
 	  keyboardState(), keyboardProcessedState(), mouseState(), mouseProcessedState(), cursorAttached(false), cursorTracked(true), lastMousePosition(), currMousePosition(),
 	  camera(glm::vec3(0.0f, 2.5f, 5.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), { float(screenWidth) / float(screenHeight) }),
-	  lastSceneType(SceneTypes::GRASS), currSceneType(SceneTypes::GRASS), currScene(nullptr)
+	  lastSceneType(SceneTypes::TESSELLATION), currSceneType(SceneTypes::TESSELLATION), currScene(nullptr)
 {
 }
 
@@ -34,6 +34,10 @@ void Application::setup()
 
 	case SceneTypes::WATER:
 		currScene = new WaterScene();
+		break;
+
+	case SceneTypes::TESSELLATION:
+		currScene = new TessellationScene();
 		break;
 
 	default:
@@ -89,6 +93,10 @@ void Application::update(float deltaTime)
 
 			case SceneTypes::WATER:
 				currScene = new WaterScene();
+				break;
+
+			case SceneTypes::TESSELLATION:
+				currScene = new TessellationScene();
 				break;
 
 			default:
@@ -194,6 +202,11 @@ void Application::processGUI(const ImGuiIO& io)
 			if (ImGui::MenuItem("Water", "6", currSceneType == SceneTypes::WATER))
 			{
 				currSceneType = SceneTypes::WATER;
+			}
+
+			if (ImGui::MenuItem("Tessellation", "7", currSceneType == SceneTypes::TESSELLATION))
+			{
+				currSceneType = SceneTypes::TESSELLATION;
 			}
 
 			ImGui::EndMenu();

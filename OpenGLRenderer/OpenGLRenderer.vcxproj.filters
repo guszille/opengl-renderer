@@ -108,6 +108,9 @@
     <ClCompile Include="sources\graphics\cubemap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sources\scenes\tessellation_scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sources\utils\debug.h">
@@ -176,6 +179,9 @@
     <ClInclude Include="sources\graphics\cubemap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="sources\scenes\tessellation_scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="sources\shaders\1_render_model_vs.glsl" />
@@ -204,5 +210,7 @@
     <None Include="sources\shaders\10_render_skybox_fs.glsl" />
     <None Include="sources\shaders\10_render_static_model_vs.glsl" />
     <None Include="sources\shaders\10_render_static_model_fs.glsl" />
+    <None Include="sources\shaders\11_render_mesh_vs.glsl" />
+    <None Include="sources\shaders\11_render_mesh_fs.glsl" />
   </ItemGroup>
 </Project>
