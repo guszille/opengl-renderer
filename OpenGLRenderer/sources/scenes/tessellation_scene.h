@@ -25,10 +25,8 @@ private:
 
 	VAO* meshVAO;
 	VBO* meshVBO;
-	IBO* meshIBO;
 
-	uint32_t numStrips;
-	uint32_t numVerticesPerStrip;
+	uint32_t numPatches;
 
 	bool renderWireframe;
 };

@@ -231,12 +231,14 @@
     <None Include="sources\shaders\10_render_water_vs.glsl" />
     <None Include="sources\shaders\11_render_mesh_fs.glsl" />
     <None Include="sources\shaders\11_render_mesh_vs.glsl" />
+    <None Include="sources\shaders\11_render_mesh_tcs.glsl" />
     <None Include="sources\shaders\7_render_particles_fs.glsl" />
     <None Include="sources\shaders\7_render_particles_vs.glsl" />
     <None Include="sources\shaders\8_render_color_and_brightness_fs.glsl" />
     <None Include="sources\shaders\8_render_color_and_brightness_vs.glsl" />
     <None Include="sources\shaders\9_render_hdr_screen_fs.glsl" />
     <None Include="sources\shaders\9_render_hdr_screen_vs.glsl" />
+    <None Include="sources\shaders\11_render_mesh_tes.glsl" />
     <None Include="sources\shaders\dev\render_debug_quad_fs.glsl" />
     <None Include="sources\shaders\dev\render_debug_quad_vs.glsl" />
     <None Include="sources\shaders\5_render_monochromatic_grass_fs.glsl" />

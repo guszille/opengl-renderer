@@ -1,13 +1,13 @@
 #include "texture.h"
 
 Texture::Texture(const char* filepath, GLenum filter, GLenum clampMode, bool gammaCorrection, bool genMipmap)
-	: ID()
+	: ID(), width(), height()
 {
 	stbi_set_flip_vertically_on_load(true);
 
 	std::cout << "[LOG] TEXTURE: Loading texture \"" << filepath << "\"." << std::endl;
 
-	int width, height, colorChannels, internalFormat = GL_RED, format = GL_RED;
+	int colorChannels, internalFormat = GL_RED, format = GL_RED;
 	stbi_uc* data = stbi_load(filepath, &width, &height, &colorChannels, 0);
 
 	glGenTextures(1, &ID);
@@ -86,12 +86,13 @@ Texture::Texture(const char* filepath, GLenum filter, GLenum clampMode, bool gam
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	std::cout << '\t' << "[LOG] TEXTURE: (colorChannels, " << colorChannels << ") (internalFormat, 0x" << std::hex << internalFormat << ") (format, 0x" << std::hex << format << ")." << std::endl;
+	std::cout << std::dec;
 
 	stbi_image_free(data);
 }
 
 Texture::Texture(unsigned char* data, int width, int height, int internalFormat, int format)
-	: ID()
+	: ID(), width(width), height(height)
 {
 	glGenTextures(1, &ID);
 	glBindTexture(GL_TEXTURE_2D, ID);

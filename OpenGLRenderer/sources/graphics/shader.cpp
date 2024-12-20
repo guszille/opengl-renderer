@@ -28,14 +28,14 @@ ShaderProgram::ShaderProgram(const char* vsFilepath, const char* fsFilepath) : I
 	glDeleteShader(fsID);
 }
 
-ShaderProgram::ShaderProgram(const char* vsFilepath, const char* gsFilepath, const char* fsFileapth) : ID()
+ShaderProgram::ShaderProgram(const char* vsFilepath, const char* gsFilepath, const char* fsFilepath) : ID()
 {
 	int success;
 	char infoLog[512];
 
 	uint32_t vsID = createShader(vsFilepath, GL_VERTEX_SHADER);
 	uint32_t gsID = createShader(gsFilepath, GL_GEOMETRY_SHADER);
-	uint32_t fsID = createShader(fsFileapth, GL_FRAGMENT_SHADER);
+	uint32_t fsID = createShader(fsFilepath, GL_FRAGMENT_SHADER);
 
 	ID = glCreateProgram();
 
@@ -56,6 +56,40 @@ ShaderProgram::ShaderProgram(const char* vsFilepath, const char* gsFilepath, con
 
 	glDeleteShader(vsID);
 	glDeleteShader(gsID);
+	glDeleteShader(fsID);
+}
+
+ShaderProgram::ShaderProgram(const char* vsFilepath, const char* tcsFilepath, const char* tesFilepath, const char* fsFilepath)
+{
+	int success;
+	char infoLog[512];
+
+	uint32_t vsID = createShader(vsFilepath, GL_VERTEX_SHADER);
+	uint32_t tcsID = createShader(tcsFilepath, GL_TESS_CONTROL_SHADER);
+	uint32_t tesID = createShader(tesFilepath, GL_TESS_EVALUATION_SHADER);
+	uint32_t fsID = createShader(fsFilepath, GL_FRAGMENT_SHADER);
+
+	ID = glCreateProgram();
+
+	glAttachShader(ID, vsID);
+	glAttachShader(ID, tcsID);
+	glAttachShader(ID, tesID);
+	glAttachShader(ID, fsID);
+
+	glLinkProgram(ID);
+
+	glGetProgramiv(ID, GL_LINK_STATUS, &success);
+
+	if (!success)
+	{
+		glGetProgramInfoLog(ID, 512, NULL, infoLog);
+
+		std::cout << "[ERROR] SHADER PROGRAM: Linkage failed!\n" << infoLog << std::endl;
+	}
+
+	glDeleteShader(vsID);
+	glDeleteShader(tcsID);
+	glDeleteShader(tesID);
 	glDeleteShader(fsID);
 }
 

@@ -18,6 +18,7 @@ class ShaderProgram
 public:
 	ShaderProgram(const char* vsFilepath, const char* fsFilepath);
 	ShaderProgram(const char* vsFilepath, const char* gsFilepath, const char* fsFilepath);
+	ShaderProgram(const char* vsFilepath, const char* tcsFilepath, const char* tesFilepath, const char* fsFilepath);
 
 	void bind();
 	void unbind();

@@ -21,6 +21,11 @@ public:
 
 	void clean();
 
+	inline int getWidth() const { return width; }
+	inline int getHeight() const { return height; }
+
 private:
 	uint32_t ID;
+
+	int width, height;
 };

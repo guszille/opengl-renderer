@@ -212,5 +212,7 @@
     <None Include="sources\shaders\10_render_static_model_fs.glsl" />
     <None Include="sources\shaders\11_render_mesh_vs.glsl" />
     <None Include="sources\shaders\11_render_mesh_fs.glsl" />
+    <None Include="sources\shaders\11_render_mesh_tcs.glsl" />
+    <None Include="sources\shaders\11_render_mesh_tes.glsl" />
   </ItemGroup>
 </Project>

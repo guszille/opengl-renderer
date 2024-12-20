@@ -2,84 +2,72 @@
 
 TessellationScene::TessellationScene()
 	: renderMeshShader(nullptr), heightMapTex(nullptr),
-      meshVAO(nullptr), meshVBO(nullptr), meshIBO(nullptr),
-      numStrips(0), numVerticesPerStrip(0),
+      meshVAO(nullptr), meshVBO(nullptr),
+      numPatches(20),
       renderWireframe(false)
 {
 }
 
 void TessellationScene::setup()
 {
-    float yScale = 64.0f / 256.0f, yShift = 16.0f; // Apply a scale + shift to the height data.
-    int width, height, colorChannels;
     std::vector<float> vertices;
-    std::vector<uint32_t> indices;
+    int maxTessellationLevel, width, height;
 
-    stbi_set_flip_vertically_on_load(true);
-    stbi_uc* heightMap = stbi_load("resources/textures/iceland_heightmap.png", &width, &height, &colorChannels, 0);
+    glGetIntegerv(GL_MAX_TESS_GEN_LEVEL, &maxTessellationLevel);
 
-    if (heightMap)
-    {
-        std::cout << "[LOG] Loaded height map of size (" << width << ", " << height << ")." << std::endl;
-    }
-    else
-    {
-        std::cerr << "[ERROR] Failed to load texture height map." << std::endl;
-    }
+    renderMeshShader = new ShaderProgram("sources/shaders/11_render_mesh_vs.glsl", "sources/shaders/11_render_mesh_tcs.glsl", "sources/shaders/11_render_mesh_tes.glsl", "sources/shaders/11_render_mesh_fs.glsl");
 
-    for (uint32_t i = 0; i < height; i++)
+    heightMapTex = new Texture("resources/textures/iceland_heightmap.png");
+
+    heightMapTex->bind(0);
+
+    width = heightMapTex->getWidth();
+    height = heightMapTex->getHeight();
+
+    for (uint32_t i = 0; i <= numPatches - 1; i++)
     {
-        for (uint32_t j = 0; j < width; j++)
+        for (uint32_t j = 0; j <= numPatches - 1; j++)
         {
-            stbi_uc* texel = heightMap + (j + width * i) * colorChannels;
+            vertices.push_back(-width / 2.0f + width * i / float(numPatches)); // v.x
+            vertices.push_back(0.0f); // v.y
+            vertices.push_back(-height / 2.0f + height * j / float(numPatches)); // v.z
+            vertices.push_back(i / float(numPatches)); // u
+            vertices.push_back(j / float(numPatches)); // v
 
-            if (texel)
-            {
-                int y = static_cast<int>(texel[0]);
+            vertices.push_back(-width / 2.0f + width * (i + 1) / float(numPatches)); // v.x
+            vertices.push_back(0.0f); // v.y
+            vertices.push_back(-height / 2.0f + height * j / float(numPatches)); // v.z
+            vertices.push_back((i + 1) / float(numPatches)); // u
+            vertices.push_back(j / float(numPatches)); // v
 
-                vertices.push_back(height * i / float(height) - height / 2.0f);
-                vertices.push_back(y * yScale - yShift);
-                vertices.push_back(width * j / float(width) - width / 2.0f);
-            }
+            vertices.push_back(-width / 2.0f + width * i / float(numPatches)); // v.x
+            vertices.push_back(0.0f); // v.y
+            vertices.push_back(-height / 2.0f + height * (j + 1) / float(numPatches)); // v.z
+            vertices.push_back(i / float(numPatches)); // u
+            vertices.push_back((j + 1) / float(numPatches)); // v
+
+            vertices.push_back(-width / 2.0f + width * (i + 1) / float(numPatches)); // v.x
+            vertices.push_back(0.0f); // v.y
+            vertices.push_back(-height / 2.0f + height * (j + 1) / float(numPatches)); // v.z
+            vertices.push_back((i + 1) / float(numPatches)); // u
+            vertices.push_back((j + 1) / float(numPatches)); // v
         }
     }
-
-    for (uint32_t i = 0; i < height - 1; i++)
-    {
-        for (uint32_t j = 0; j < width; j++)
-        {
-            for (uint32_t k = 0; k < 2; k++)
-            {
-                indices.push_back(j + width * (i + k));
-            }
-        }
-    }
-
-    renderMeshShader = new ShaderProgram("sources/shaders/11_render_mesh_vs.glsl", "sources/shaders/11_render_mesh_fs.glsl");
 
     meshVAO = new VAO();
     meshVBO = new VBO(&vertices[0], vertices.size() * sizeof(float));
-    meshIBO = new IBO(&indices[0], indices.size() * sizeof(uint32_t));
 
     meshVAO->bind();
     meshVBO->bind();
-    meshIBO->bind();
 
-    meshVAO->setVertexAttribute(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(0));
+    meshVAO->setVertexAttribute(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(0));
+    meshVAO->setVertexAttribute(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 
     meshVAO->unbind(); // Unbind VAO before another buffer.
     meshVBO->unbind();
-    meshIBO->unbind();
 
-    numStrips = height - 1;
-    numVerticesPerStrip = width * 2 - 2;
-
-    stbi_image_free(heightMap);
-
-    std::cout << "[LOG] Loaded " << vertices.size() / 3 << " vertices." << std::endl;
-    std::cout << "[LOG] Loaded " << indices.size() << " indices." << std::endl;
-    std::cout << "[LOG] Created lattice of " << numStrips << " strips with " << numVerticesPerStrip << " triangles each." << std::endl;
-    std::cout << "[LOG] Created " << numStrips * numVerticesPerStrip << " triangles total." << std::endl;
+    std::cout << "[LOG] Number of vertices generated: " << vertices.size() << std::endl;
+    std::cout << "[LOG] Max available tessellation level: " << maxTessellationLevel << std::endl;
 
     glPatchParameteri(GL_PATCH_VERTICES, 4);
 }
@@ -87,16 +75,14 @@ void TessellationScene::setup()
 void TessellationScene::clean()
 {
     renderMeshShader->clean();
-    //heightMapTex->clean();
+    heightMapTex->clean();
     meshVAO->clean();
     meshVBO->clean();
-    meshIBO->clean();
 
     delete renderMeshShader;
-    //delete heightMapTex;
+    delete heightMapTex;
     delete meshVAO;
     delete meshVBO;
-    delete meshIBO;
 }
 
 void TessellationScene::update(float deltaTime)
@@ -127,10 +113,9 @@ void TessellationScene::render(const Camera& camera, float deltaTime)
     renderMeshShader->setUniformMatrix4fv("uViewMatrix", camera.getViewMatrix());
     renderMeshShader->setUniformMatrix4fv("uModelMatrix", modelMatrix);
 
-    for (uint32_t strip = 0; strip < numStrips; strip++)
-    {
-        glDrawElements(GL_TRIANGLE_STRIP, numVerticesPerStrip + 2, GL_UNSIGNED_INT, (void*)(sizeof(uint32_t) * (numVerticesPerStrip + 2) * strip));
-    }
+    renderMeshShader->setUniform1i("uHeightMap", 0);
+
+    glDrawArrays(GL_PATCHES, 0, 4 * numPatches * numPatches);
 
     renderMeshShader->unbind();
     meshVAO->unbind();
